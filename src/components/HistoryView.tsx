@@ -300,7 +300,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                             ? 'bg-[#D4E8DC] text-[#166534]'
                             : 'bg-[#FADCDC] text-[#991B1B]'
                         }`}>
-                          {trade.type} / {trade.market}
+                          {trade.type} / {trade.market === 'INDEX' ? 'OPTION' : trade.market}
                         </span>
                         {trade.market === 'INDEX' && trade.optionType && trade.optionType !== 'NONE' && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 tracking-wider uppercase">

@@ -495,9 +495,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             {trade.symbol}
                           </span>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                            trade.market === 'CRYPTO' ? 'bg-indigo-50 text-indigo-700' : 'bg-orange-50 text-orange-700'
+                            trade.market === 'CRYPTO' 
+                              ? 'bg-indigo-50 text-indigo-700' 
+                              : trade.market === 'INDEX'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-orange-50 text-orange-700'
                           }`}>
-                            {trade.market}
+                            {trade.market === 'INDEX' ? 'OPTION' : trade.market}
                           </span>
                         </div>
                         <span className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wide">

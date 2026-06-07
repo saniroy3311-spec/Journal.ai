@@ -215,7 +215,7 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
                         : 'text-[#5C5C5E] hover:text-[#1C1C1E]'
                     }`}
                   >
-                    {m}
+                    {m === 'INDEX' ? 'OPTION' : m}
                   </button>
                 ))}
               </div>
