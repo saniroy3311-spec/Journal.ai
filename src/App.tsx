@@ -12,6 +12,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>('DASHBOARD');
   const [trades, setTrades] = useState<Trade[]>([]);
   const [customInstructions, setCustomInstructions] = useState<string>('');
+  const [startingCapital, setStartingCapital] = useState<number>(1254300);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Global Image modal state
@@ -22,21 +23,24 @@ function App() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
-  // Load trades and coach instructions from backend SQLite database
+  // Load trades, coach instructions, and starting capital from backend SQLite database
   useEffect(() => {
     async function loadData() {
       try {
-        const [tradesRes, instRes] = await Promise.all([
+        const [tradesRes, instRes, capRes] = await Promise.all([
           fetch('/api/trades'),
-          fetch('/api/coach-instructions')
+          fetch('/api/coach-instructions'),
+          fetch('/api/starting-capital')
         ]);
-        if (!tradesRes.ok || !instRes.ok) {
+        if (!tradesRes.ok || !instRes.ok || !capRes.ok) {
           throw new Error('Failed to load data from server');
         }
         const tradesData = await tradesRes.json();
         const instData = await instRes.json();
+        const capData = await capRes.json();
         setTrades(tradesData);
         setCustomInstructions(instData.value);
+        setStartingCapital(capData.value);
       } catch (e) {
         console.error('Error loading data from API', e);
       } finally {
@@ -45,6 +49,19 @@ function App() {
     }
     loadData();
   }, []);
+
+  const handleUpdateStartingCapital = async (value: number) => {
+    setStartingCapital(value);
+    try {
+      await fetch('/api/starting-capital', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value })
+      });
+    } catch (e) {
+      console.error('Failed to update starting capital', e);
+    }
+  };
 
   // Debounce saving custom instructions to SQLite database (avoids storming the backend)
   useEffect(() => {
@@ -101,13 +118,18 @@ function App() {
         if (!res.ok) throw new Error('Network response was not ok');
         
         // Reload all data
-        const tradesRes = await fetch('/api/trades');
-        const instRes = await fetch('/api/coach-instructions');
-        if (tradesRes.ok && instRes.ok) {
+        const [tradesRes, instRes, capRes] = await Promise.all([
+          fetch('/api/trades'),
+          fetch('/api/coach-instructions'),
+          fetch('/api/starting-capital')
+        ]);
+        if (tradesRes.ok && instRes.ok && capRes.ok) {
           const tradesData = await tradesRes.json();
           const instData = await instRes.json();
+          const capData = await capRes.json();
           setTrades(tradesData);
           setCustomInstructions(instData.value);
+          setStartingCapital(capData.value);
         }
         setTimeframe('ALL');
       } catch (e) {
@@ -157,7 +179,6 @@ function App() {
   // Computed Portfolio Stats (Header shows actual total portfolio balance for the filtered range)
   const closedTrades = filteredTrades.filter((t) => t.status === 'CLOSED');
   const totalPnL = closedTrades.reduce((acc, t) => acc + t.pnl, 0);
-  const startingCapital = 1254300;
   const netEquity = startingCapital + totalPnL;
 
   if (isLoading) {
@@ -264,6 +285,8 @@ function App() {
             >
               <DashboardView
                 trades={filteredTrades}
+                startingCapital={startingCapital}
+                onUpdateStartingCapital={handleUpdateStartingCapital}
                 customInstructions={customInstructions}
                 setCustomInstructions={setCustomInstructions}
                 onSelectTradeImage={setSelectedImage}

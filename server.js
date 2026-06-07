@@ -321,6 +321,30 @@ app.post('/api/custom-strategies', async (req, res) => {
   }
 });
 
+app.get('/api/starting-capital', async (req, res) => {
+  try {
+    const row = await db.get('SELECT value FROM config WHERE key = ?', ['starting_capital']);
+    res.json({ value: row ? parseFloat(row.value) : 1254300 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch starting capital' });
+  }
+});
+
+app.post('/api/starting-capital', async (req, res) => {
+  try {
+    const { value } = req.body;
+    await db.run(
+      'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
+      ['starting_capital', String(value)]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update starting capital' });
+  }
+});
+
 app.post('/api/reset', async (req, res) => {
   try {
     await db.run('DELETE FROM trades');

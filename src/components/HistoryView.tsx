@@ -40,6 +40,160 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+  const handleExportCSV = () => {
+    if (sortedTrades.length === 0) {
+      alert("No trades to export!");
+      return;
+    }
+
+    const headers = [
+      "Date",
+      "Symbol",
+      "Type",
+      "Market",
+      "Entry Price",
+      "Exit Price",
+      "Quantity",
+      "Stop Loss (SL)",
+      "Take Profit (TP)",
+      "Net PnL (INR)",
+      "PnL (%)",
+      "Strategy",
+      "Emotion",
+      "Notes"
+    ];
+
+    const rows = sortedTrades.map((t) => [
+      format(parseISO(t.date), "yyyy-MM-dd HH:mm:ss"),
+      t.symbol,
+      t.type,
+      t.market,
+      t.entryPrice,
+      t.exitPrice,
+      t.quantity,
+      t.sl || "",
+      t.tp || "",
+      t.pnl,
+      t.pnlPercentage.toFixed(2),
+      t.strategy,
+      t.emotion,
+      t.notes.replace(/"/g, '""')
+    ]);
+
+    // UTF-8 BOM so Excel opens emojis and special characters correctly
+    const csvContent =
+      "data:text/csv;charset=utf-8,\uFEFF" +
+      [headers.join(","), ...rows.map((e) => e.map(val => `"${val}"`).join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `trading_logs_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportPDF = () => {
+    if (sortedTrades.length === 0) {
+      alert("No trades to export!");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Pop-up blocked! Please allow pop-ups to export PDF.");
+      return;
+    }
+
+    const tradesHtml = sortedTrades.map((t) => {
+      const isProfit = t.pnl >= 0;
+      return `
+        <tr style="border-bottom: 1px solid #E4E4E7;">
+          <td style="padding: 10px; font-size: 11px;">${format(parseISO(t.date), "dd MMM yyyy, hh:mm a")}</td>
+          <td style="padding: 10px; font-size: 12px; font-weight: bold;">${t.symbol}</td>
+          <td style="padding: 10px; font-size: 11px; font-weight: bold; color: ${t.type === 'BUY' ? '#166534' : '#991B1B'}">${t.type}</td>
+          <td style="padding: 10px; font-size: 11px;">${t.market}</td>
+          <td style="padding: 10px; font-size: 11px; text-align: right;">₹${t.entryPrice.toLocaleString('en-IN')}</td>
+          <td style="padding: 10px; font-size: 11px; text-align: right;">₹${t.exitPrice.toLocaleString('en-IN')}</td>
+          <td style="padding: 10px; font-size: 11px; text-align: center;">${t.quantity}</td>
+          <td style="padding: 10px; font-size: 12px; font-weight: 800; text-align: right; color: ${isProfit ? '#166534' : '#991B1B'}">
+            ${isProfit ? '+' : ''}₹${t.pnl.toLocaleString('en-IN')} (${t.pnlPercentage.toFixed(2)}%)
+          </td>
+          <td style="padding: 10px; font-size: 11px;">${t.strategy}</td>
+          <td style="padding: 10px; font-size: 14px; text-align: center;">${t.emotion}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const totalPnL = sortedTrades.reduce((acc, t) => acc + t.pnl, 0);
+    const isTotalProfit = totalPnL >= 0;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Journal.ai - Trade Logs Report</title>
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1C1C1E; margin: 40px; }
+            h1 { font-family: sans-serif; font-size: 24px; font-weight: 850; margin-bottom: 5px; }
+            p { font-size: 12px; color: #5C5C5E; margin-top: 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background-color: #FAFAF7; border-bottom: 2px solid #D9D9D2; color: #5C5C5E; font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 12px 10px; text-align: left; }
+            .summary { display: flex; justify-content: space-between; margin-top: 30px; border-top: 2px solid #D9D9D2; padding-top: 20px; }
+            .summary-block { font-size: 14px; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div style="border-bottom: 2px solid #244230; padding-bottom: 15px;">
+            <h1>Journal.ai</h1>
+            <p>Official Trading Log History Report — Generated on ${new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })}</p>
+          </div>
+          
+          <table>
+            <thead>
+               <tr>
+                 <th>Date</th>
+                 <th>Symbol</th>
+                 <th>Type</th>
+                 <th>Market</th>
+                 <th style="text-align: right;">Entry</th>
+                 <th style="text-align: right;">Exit</th>
+                 <th style="text-align: center;">Qty</th>
+                 <th style="text-align: right;">Net P&L</th>
+                 <th>Strategy</th>
+                 <th style="text-align: center;">Mood</th>
+               </tr>
+            </thead>
+            <tbody>
+              ${tradesHtml}
+            </tbody>
+          </table>
+
+          <div class="summary">
+            <div>
+              <div class="summary-block" style="color: #5C5C5E;">Total Logs: ${sortedTrades.length} trades</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="summary-block" style="font-size: 16px;">
+                Total Realized P&L: 
+                <span style="color: ${isTotalProfit ? '#166534' : '#991B1B'}">
+                  ${isTotalProfit ? '+' : ''}₹${totalPnL.toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   const filters: { id: FilterType; label: string }[] = [
     { id: 'ALL', label: 'All Trades' },
     { id: 'BUY', label: 'Buy / Longs' },
@@ -49,14 +203,32 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 md:py-6 pb-24 md:pb-12 space-y-4 md:space-y-6">
       
-      {/* Title */}
-      <div>
-        <h2 className="text-xl font-bold font-display text-[#1C1C1E]">
-          Trading Log History
-        </h2>
-        <p className="text-xs font-medium text-[#5C5C5E]">
-          Search, filter, and inspect past performance journals
-        </p>
+      {/* Title & Exports */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold font-display text-[#1C1C1E]">
+            Trading Log History
+          </h2>
+          <p className="text-xs font-medium text-[#5C5C5E]">
+            Search, filter, and inspect past performance journals
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#FAFAF7] border border-[#D9D9D2] hover:bg-[#EAEAE2] text-[#1C1C1E] text-xs font-bold rounded-xl transition-colors cursor-pointer"
+          >
+            <FileText size={14} className="text-[#166534]" />
+            <span>Export CSV (Excel)</span>
+          </button>
+          <button
+            onClick={handleExportPDF}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#FAFAF7] border border-[#D9D9D2] hover:bg-[#EAEAE2] text-[#1C1C1E] text-xs font-bold rounded-xl transition-colors cursor-pointer"
+          >
+            <FileText size={14} className="text-[#991B1B]" />
+            <span>Download PDF</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}

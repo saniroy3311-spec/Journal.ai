@@ -56,6 +56,8 @@ const INSIGHT_TONES = {
 
 interface DashboardViewProps {
   trades: Trade[];
+  startingCapital: number;
+  onUpdateStartingCapital: (val: number) => void;
   customInstructions: string;
   setCustomInstructions: (text: string) => void;
   onSelectTradeImage: (url: string) => void;
@@ -64,6 +66,8 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   trades,
+  startingCapital,
+  onUpdateStartingCapital,
   customInstructions,
   setCustomInstructions,
   onSelectTradeImage,
@@ -75,7 +79,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const closedTrades = trades;
 
   // Equity Curve Chart Data preparation
-  const initialCapital = 1254300;
+  const initialCapital = startingCapital;
   const sortedClosed = [...closedTrades].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   let runningEquity = initialCapital;
@@ -150,18 +154,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Net Equity Card */}
         <div className="bg-white border border-[#D9D9D2] p-4 md:p-5 rounded-xl md:rounded-2xl premium-shadow flex items-start justify-between">
-          <div className="space-y-1">
+          <div className="space-y-1 w-full">
             <span className="text-xs font-bold text-[#5C5C5E] uppercase tracking-wider block">
               Net Portfolio Equity
             </span>
             <span className="text-2xl font-extrabold font-display text-[#1C1C1E] block">
               ₹{(initialCapital + stats.totalPnL).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </span>
-            <div className="flex items-center gap-1 text-[11px] font-bold mt-1 text-[#5C5C5E]">
-              <span>Base capital: ₹{initialCapital.toLocaleString('en-IN')}</span>
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold mt-1 text-[#5C5C5E]">
+              <span>Base capital: ₹</span>
+              <input
+                type="number"
+                value={startingCapital}
+                onChange={(e) => onUpdateStartingCapital(Number(e.target.value) || 0)}
+                className="w-24 bg-[#FAFAF7] border border-[#D9D9D2]/70 px-1.5 py-0.5 rounded focus:outline-none focus:ring-1 focus:ring-[#244230] font-extrabold text-[#1C1C1E] text-[10px]"
+              />
             </div>
           </div>
-          <div className="p-3 rounded-xl bg-emerald-50 text-[#166534]">
+          <div className="p-3 rounded-xl bg-emerald-50 text-[#166534] flex-shrink-0">
             <Wallet size={22} />
           </div>
         </div>
