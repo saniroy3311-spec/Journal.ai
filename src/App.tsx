@@ -7,6 +7,7 @@ import { HistoryView } from './components/HistoryView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Calendar } from 'lucide-react';
+import { LoginView } from './components/LoginView';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('DASHBOARD');
@@ -17,9 +18,28 @@ function App() {
   const [isCapitalModalOpen, setIsCapitalModalOpen] = useState<boolean>(false);
   const [tempCapital, setTempCapital] = useState<string>('1254300');
 
+  // Auth Session State
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [username, setUsername] = useState<string | null>(localStorage.getItem('username'));
+
   const handleOpenCapitalModal = () => {
     setTempCapital(startingCapital.toString());
     setIsCapitalModalOpen(true);
+  };
+
+  const handleLoginSuccess = (newToken: string, newUsername: string) => {
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('username', newUsername);
+    setToken(newToken);
+    setUsername(newUsername);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setToken(null);
+    setUsername(null);
+    setTrades([]);
   };
 
   // Global Image modal state
@@ -32,13 +52,25 @@ function App() {
 
   // Load trades, coach instructions, and starting capital from backend SQLite database
   useEffect(() => {
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
     async function loadData() {
+      setIsLoading(true);
       try {
         const [tradesRes, instRes, capRes] = await Promise.all([
-          fetch('/api/trades'),
-          fetch('/api/coach-instructions'),
-          fetch('/api/starting-capital')
+          fetch('/api/trades', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/coach-instructions', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/starting-capital', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
+
+        if (tradesRes.status === 401 || instRes.status === 401 || capRes.status === 401 ||
+            tradesRes.status === 403 || instRes.status === 403 || capRes.status === 403) {
+          handleLogout();
+          return;
+        }
+
         if (!tradesRes.ok || !instRes.ok || !capRes.ok) {
           throw new Error('Failed to load data from server');
         }
@@ -55,14 +87,17 @@ function App() {
       }
     }
     loadData();
-  }, []);
+  }, [token]);
 
   const handleUpdateStartingCapital = async (value: number) => {
     setStartingCapital(value);
     try {
       await fetch('/api/starting-capital', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ value })
       });
     } catch (e) {
@@ -72,24 +107,30 @@ function App() {
 
   // Debounce saving custom instructions to SQLite database (avoids storming the backend)
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !token) return;
     const delayDebounceFn = setTimeout(() => {
       fetch('/api/coach-instructions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ value: customInstructions })
       }).catch(err => console.error('Failed to save custom instructions', err));
     }, 1000); // 1s debounce
 
     return () => clearTimeout(delayDebounceFn);
-  }, [customInstructions, isLoading]);
+  }, [customInstructions, isLoading, token]);
 
   // Handle Trade Addition
   const handleAddTrade = async (newTrade: Trade) => {
     try {
       const res = await fetch('/api/trades', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newTrade)
       });
       if (!res.ok) throw new Error('Network response was not ok');
@@ -104,7 +145,8 @@ function App() {
   const handleDeleteTrade = async (id: string) => {
     try {
       const res = await fetch(`/api/trades/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Network response was not ok');
       setTrades((prev) => prev.filter((t) => t.id !== id));
@@ -120,15 +162,16 @@ function App() {
       try {
         setIsLoading(true);
         const res = await fetch('/api/reset', {
-          method: 'POST'
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Network response was not ok');
         
         // Reload all data
         const [tradesRes, instRes, capRes] = await Promise.all([
-          fetch('/api/trades'),
-          fetch('/api/coach-instructions'),
-          fetch('/api/starting-capital')
+          fetch('/api/trades', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/coach-instructions', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/starting-capital', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
         if (tradesRes.ok && instRes.ok && capRes.ok) {
           const tradesData = await tradesRes.json();
@@ -210,6 +253,10 @@ function App() {
     );
   }
 
+  if (!token) {
+    return <LoginView onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-white text-[#1C1C1E] flex flex-col font-sans select-none antialiased">
       {/* Header Bar */}
@@ -218,6 +265,8 @@ function App() {
         setActiveTab={setActiveTab}
         startingCapital={startingCapital}
         onEditCapital={handleOpenCapitalModal}
+        username={username || ''}
+        onLogout={handleLogout}
       />
 
       {/* Global Date Filter Toolbar */}

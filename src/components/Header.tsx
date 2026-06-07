@@ -1,4 +1,4 @@
-import { LayoutDashboard, PlusCircle, BookOpen, BarChart3, Edit2 } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, BookOpen, BarChart3, Edit2, LogOut } from 'lucide-react';
 import type { TabType } from '../types';
 import { motion } from 'framer-motion';
 
@@ -7,13 +7,17 @@ interface HeaderProps {
   setActiveTab: (tab: TabType) => void;
   startingCapital: number;
   onEditCapital: () => void;
+  username: string;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   startingCapital,
-  onEditCapital
+  onEditCapital,
+  username,
+  onLogout
 }) => {
   const tabs = [
     { id: 'DASHBOARD' as TabType, label: 'Dashboard', icon: LayoutDashboard },
@@ -68,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
           })}
         </nav>
 
-        {/* Right Side: Capital Info */}
+        {/* Right Side: Capital Info & User Session */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-5 text-right">
             <div 
@@ -84,6 +88,26 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
           </div>
+
+          <div className="h-8 w-[1px] bg-[#D9D9D2]/70" />
+
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-1">
+                Active User
+              </span>
+              <span className="text-xs font-bold text-[#1C1C1E] font-display">
+                @{username}
+              </span>
+            </div>
+            <button
+              onClick={onLogout}
+              className="p-2 rounded-xl hover:bg-red-50 hover:text-red-600 text-[#5C5C5E] transition-all cursor-pointer border border-transparent hover:border-red-200/50 flex items-center justify-center"
+              title="Sign Out"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -97,10 +121,10 @@ export const Header: React.FC<HeaderProps> = ({
             Journal.ai
           </h1>
         </div>
-        <div className="flex items-center gap-3 text-right">
+        <div className="flex items-center gap-3.5 text-right">
           <div 
             onClick={onEditCapital}
-            className="cursor-pointer active:bg-[#EAEAE2]/50 p-1.5 -m-1.5 rounded transition-colors select-none"
+            className="cursor-pointer active:bg-[#EAEAE2]/50 p-1.5 rounded transition-colors select-none"
             title="Click to edit starting capital"
           >
             <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5 flex items-center gap-0.5 justify-end">
@@ -110,6 +134,16 @@ export const Header: React.FC<HeaderProps> = ({
               ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </span>
           </div>
+
+          <div className="h-6 w-[1px] bg-[#D9D9D2]/70" />
+
+          <button
+            onClick={onLogout}
+            className="p-2 -mr-1 rounded-xl active:bg-red-50 text-[#5C5C5E] active:text-red-600 transition-all cursor-pointer flex items-center justify-center"
+            title="Sign Out"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </header>
 
