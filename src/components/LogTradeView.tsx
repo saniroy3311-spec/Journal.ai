@@ -495,8 +495,12 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
                       : 'border-[#D9D9D2] bg-white hover:bg-[#FAFAF7]'
                   }`}
                 >
-                  <span className="text-xl mb-1">{em.emoji}</span>
-                  <span className="text-[9px] font-bold text-[#5C5C5E] uppercase tracking-tight">{em.label}</span>
+                  <span className="text-sm mb-1.5">{em.emoji}</span>
+                  <span className={`text-[10px] font-extrabold uppercase tracking-wider transition-colors duration-150 ${
+                    emotion === em.emoji ? 'text-[#1C1C1E]' : 'text-[#5C5C5E]'
+                  }`}>
+                    {em.label}
+                  </span>
                 </button>
               ))}
             </div>

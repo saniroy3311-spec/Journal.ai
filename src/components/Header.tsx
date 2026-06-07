@@ -1,4 +1,4 @@
-import { LayoutDashboard, PlusCircle, BookOpen, BarChart3, Radio, Edit2 } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, BookOpen, BarChart3, Edit2 } from 'lucide-react';
 import type { TabType } from '../types';
 import { motion } from 'framer-motion';
 
@@ -72,12 +72,8 @@ export const Header: React.FC<HeaderProps> = ({
           })}
         </nav>
 
-        {/* Right Side: Live Badge + Capital Info */}
+        {/* Right Side: Capital Info */}
         <div className="flex items-center gap-6">
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EAEAE2] border border-[#D9D9D2]/50 text-xs font-semibold text-[#1C1C1E]">
-            <Radio size={14} className="text-[#166534] animate-pulse" />
-            <span>LIVE NSE/BSE</span>
-          </div>
           <div className="flex items-center gap-5 text-right">
             <div 
               onClick={onEditCapital}
