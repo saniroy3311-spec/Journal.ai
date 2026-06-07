@@ -111,9 +111,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-6 md:space-y-8 px-4 md:px-8 py-4 md:py-6 pb-24 md:pb-12 max-w-7xl mx-auto">
       
-      {/* Row 1: 4 Stat Cards */}
+      {/* Row 1: 3 Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+
+        {/* Net Equity Card */}
+        <div className="bg-white border border-[#D9D9D2] p-4 md:p-5 rounded-xl md:rounded-2xl premium-shadow flex items-start justify-between">
+          <div className="space-y-1 w-full">
+            <span className="text-xs font-bold text-[#5C5C5E] uppercase tracking-wider block">
+              Net Portfolio Equity
+            </span>
+            <span className="text-2xl font-extrabold font-display text-[#1C1C1E] block">
+              ₹{(initialCapital + stats.totalPnL).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold mt-1.5 text-[#5C5C5E]">
+              <span>Base capital:</span>
+              <button 
+                onClick={onEditCapital}
+                className="bg-[#FAFAF7] hover:bg-[#EAEAE2] border border-[#D9D9D2]/70 px-2 py-0.5 rounded transition-colors font-extrabold text-[#1C1C1E] text-[10px] flex items-center gap-1 cursor-pointer select-none"
+                title="Click to edit starting capital"
+              >
+                ₹{startingCapital.toLocaleString('en-IN')} <Edit2 size={9} className="opacity-60" />
+              </button>
+            </div>
+          </div>
+          <div className="p-3 rounded-xl bg-emerald-50 text-[#166534] flex-shrink-0">
+            <Wallet size={22} />
+          </div>
+        </div>
+
         {/* Total P&L Card */}
         <div className="bg-white border border-[#D9D9D2] p-4 md:p-5 rounded-xl md:rounded-2xl premium-shadow flex items-start justify-between">
           <div className="space-y-1">
@@ -150,31 +175,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
             <Percent size={22} />
-          </div>
-        </div>
-
-        {/* Net Equity Card */}
-        <div className="bg-white border border-[#D9D9D2] p-4 md:p-5 rounded-xl md:rounded-2xl premium-shadow flex items-start justify-between">
-          <div className="space-y-1 w-full">
-            <span className="text-xs font-bold text-[#5C5C5E] uppercase tracking-wider block">
-              Net Portfolio Equity
-            </span>
-            <span className="text-2xl font-extrabold font-display text-[#1C1C1E] block">
-              ₹{(initialCapital + stats.totalPnL).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-            </span>
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold mt-1.5 text-[#5C5C5E]">
-              <span>Base capital:</span>
-              <button 
-                onClick={onEditCapital}
-                className="bg-[#FAFAF7] hover:bg-[#EAEAE2] border border-[#D9D9D2]/70 px-2 py-0.5 rounded transition-colors font-extrabold text-[#1C1C1E] text-[10px] flex items-center gap-1 cursor-pointer select-none"
-                title="Click to edit starting capital"
-              >
-                ₹{startingCapital.toLocaleString('en-IN')} <Edit2 size={9} className="opacity-60" />
-              </button>
-            </div>
-          </div>
-          <div className="p-3 rounded-xl bg-emerald-50 text-[#166534] flex-shrink-0">
-            <Wallet size={22} />
           </div>
         </div>
 
