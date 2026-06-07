@@ -186,7 +186,6 @@ function App() {
   // Computed Portfolio Stats (Header shows actual total portfolio balance for the filtered range)
   const closedTrades = filteredTrades.filter((t) => t.status === 'CLOSED');
   const totalPnL = closedTrades.reduce((acc, t) => acc + t.pnl, 0);
-  const netEquity = startingCapital + totalPnL;
 
   if (isLoading) {
     return (
@@ -221,7 +220,6 @@ function App() {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        netEquity={netEquity}
         totalPnL={totalPnL}
         startingCapital={startingCapital}
         onEditCapital={handleOpenCapitalModal}

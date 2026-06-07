@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 interface HeaderProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
-  netEquity: number;
   totalPnL: number;
   startingCapital: number;
   onEditCapital: () => void;
@@ -14,7 +13,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-  netEquity,
   totalPnL,
   startingCapital,
   onEditCapital
@@ -89,18 +87,9 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-[9px] font-extrabold text-[#5C5C5E] group-hover:text-[#244230] uppercase tracking-wider block leading-none mb-1.5 flex items-center gap-1 justify-end transition-colors">
                 Start Capital <Edit2 size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </span>
-              <span className="text-sm font-bold text-[#1C1C1E] font-display">
-                ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-              </span>
-            </div>
-            <div className="h-8 w-px bg-[#D9D9D2]/70" />
-            <div>
-              <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-1">
-                New Capital
-              </span>
               <div className="flex items-center gap-2 justify-end">
-                <span className="text-lg font-black text-[#1C1C1E] font-display">
-                  ₹{netEquity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                <span className="text-sm font-bold text-[#1C1C1E] font-display">
+                  ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                 </span>
                 <span
                   className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
@@ -137,18 +126,21 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5 flex items-center gap-0.5 justify-end">
               Start Cap <Edit2 size={8} className="opacity-60" />
             </span>
-            <span className="text-[10px] font-bold text-[#5C5C5E] font-display">
-              ₹{(startingCapital / 1000).toFixed(0)}k
-            </span>
-          </div>
-          <div className="h-6 w-px bg-[#D9D9D2]/70" />
-          <div>
-            <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5">
-              New Cap
-            </span>
-            <span className="text-xs font-black text-[#1C1C1E] font-display">
-              ₹{netEquity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-            </span>
+            <div className="flex items-center gap-1.5 justify-end">
+              <span className="text-[10px] font-bold text-[#1C1C1E] font-display">
+                ₹{(startingCapital / 1000).toFixed(0)}k
+              </span>
+              <span
+                className={`text-[8px] font-extrabold px-1 rounded ${
+                  pnlIsPositive
+                    ? 'bg-[#D4E8DC] text-[#166534]'
+                    : 'bg-[#FADCDC] text-[#991B1B]'
+                }`}
+              >
+                {pnlIsPositive ? '+' : ''}
+                {totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              </span>
+            </div>
           </div>
         </div>
       </header>
