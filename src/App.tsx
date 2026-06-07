@@ -15,10 +15,10 @@ function App() {
   const [startingCapital, setStartingCapital] = useState<number>(1254300);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isCapitalModalOpen, setIsCapitalModalOpen] = useState<boolean>(false);
-  const [tempCapital, setTempCapital] = useState<number>(1254300);
+  const [tempCapital, setTempCapital] = useState<string>('1254300');
 
   const handleOpenCapitalModal = () => {
-    setTempCapital(startingCapital);
+    setTempCapital(startingCapital.toString());
     setIsCapitalModalOpen(true);
   };
 
@@ -385,7 +385,7 @@ function App() {
                   <input
                     type="number"
                     value={tempCapital}
-                    onChange={(e) => setTempCapital(Number(e.target.value) || 0)}
+                    onChange={(e) => setTempCapital(e.target.value)}
                     placeholder="e.g. 100000"
                     className="w-full bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl pl-8 pr-4 py-3 text-sm font-extrabold text-[#1C1C1E] focus:outline-none focus:ring-1 focus:ring-[#244230]"
                     autoFocus
@@ -407,7 +407,8 @@ function App() {
                 <button
                   type="button"
                   onClick={() => {
-                    handleUpdateStartingCapital(tempCapital);
+                    const parsed = parseFloat(tempCapital);
+                    handleUpdateStartingCapital(isNaN(parsed) ? 0 : parsed);
                     setIsCapitalModalOpen(false);
                   }}
                   className="px-4 py-2 bg-[#244230] text-white rounded-xl text-xs font-bold hover:bg-[#1b3224] transition-colors cursor-pointer"
