@@ -124,14 +124,14 @@ export const Header: React.FC<HeaderProps> = ({
             title="Click to edit starting capital"
           >
             <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5 flex items-center gap-0.5 justify-end">
-              Start Cap <Edit2 size={8} className="opacity-60" />
+              START CAP <Edit2 size={8} className="opacity-60" />
             </span>
             <div className="flex items-center gap-1.5 justify-end">
-              <span className="text-[10px] font-bold text-[#1C1C1E] font-display">
-                ₹{(startingCapital / 1000).toFixed(0)}k
+              <span className="text-xs font-extrabold text-[#1C1C1E] font-display">
+                ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </span>
               <span
-                className={`text-[8px] font-extrabold px-1 rounded ${
+                className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
                   pnlIsPositive
                     ? 'bg-[#D4E8DC] text-[#166534]'
                     : 'bg-[#FADCDC] text-[#991B1B]'
