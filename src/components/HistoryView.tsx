@@ -302,6 +302,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         }`}>
                           {trade.type} / {trade.market}
                         </span>
+                        {trade.market === 'INDEX' && trade.optionType && trade.optionType !== 'NONE' && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 tracking-wider uppercase">
+                            {trade.strikePrice} {trade.optionType}
+                          </span>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#5C5C5E] mt-1">
                         <Calendar size={13} />
@@ -391,6 +396,22 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                           ₹{(trade.entryPrice * trade.quantity).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                         </span>
                       </div>
+                      {trade.market === 'INDEX' && trade.optionType && trade.optionType !== 'NONE' && (
+                        <>
+                          <div className="space-y-0.5">
+                            <span className="text-[11px] font-bold text-[#7C7C7E] tracking-wider block">STRIKE PRICE</span>
+                            <span className="text-base font-extrabold text-[#1C1C1E] font-display">
+                              {trade.strikePrice}
+                            </span>
+                          </div>
+                          <div className="space-y-0.5">
+                            <span className="text-[11px] font-bold text-[#7C7C7E] tracking-wider block">OPTION TYPE</span>
+                            <span className="text-base font-extrabold text-blue-600 font-display">
+                              {trade.optionType}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     {/* SL / TP bounds */}

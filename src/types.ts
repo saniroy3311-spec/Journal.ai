@@ -18,6 +18,8 @@ export interface Trade {
   notes: string;
   status: 'CLOSED';
   recurring?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  strikePrice?: number;
+  optionType?: 'CE' | 'PE' | 'NONE';
 }
 
 export interface EmotionOption {

@@ -19,6 +19,8 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
   const [sl, setSl] = useState<string>('');
   const [tp, setTp] = useState<string>('');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [strikePrice, setStrikePrice] = useState<string>('');
+  const [optionType, setOptionType] = useState<'CE' | 'PE' | 'NONE'>('NONE');
   const [strategiesList, setStrategiesList] = useState<string[]>(STRATEGIES);
   const [strategy, setStrategy] = useState<string>(STRATEGIES[0]);
 
@@ -163,7 +165,9 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
       pnlPercentage: calculatedPnLPercent,
       notes: notes.trim(),
       status: 'CLOSED',
-      recurring: 'NONE'
+      recurring: 'NONE',
+      strikePrice: market === 'INDEX' && strikePrice ? parseFloat(strikePrice) : undefined,
+      optionType: market === 'INDEX' ? optionType : 'NONE'
     };
 
     onAddTrade(newTrade);
@@ -378,6 +382,47 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
             </div>
 
           </div>
+
+          {/* Index Option Specific Details */}
+          {market === 'INDEX' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl">
+              <div className="space-y-2">
+                <label className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">
+                  Strike Price (e.g. 22100)
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={strikePrice}
+                  onChange={(e) => setStrikePrice(e.target.value)}
+                  placeholder="Enter Strike Price"
+                  className="w-full px-4 py-2.5 text-xs bg-white border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">
+                  Option Type
+                </label>
+                <div className="flex bg-[#EAEAE2] p-1 rounded-xl gap-1">
+                  {(['CE', 'PE', 'NONE'] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setOptionType(opt)}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                        optionType === opt
+                          ? 'bg-[#244230] text-white'
+                          : 'text-[#5C5C5E] hover:text-[#1C1C1E]'
+                      }`}
+                    >
+                      {opt === 'NONE' ? 'Not Option' : opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Stop Loss and Take Profit */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

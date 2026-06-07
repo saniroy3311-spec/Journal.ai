@@ -43,7 +43,9 @@ async function initDb() {
       pnlPercentage REAL NOT NULL,
       notes TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'CLOSED',
-      recurring TEXT
+      recurring TEXT,
+      strikePrice REAL,
+      optionType TEXT
     );
 
     CREATE TABLE IF NOT EXISTS config (
@@ -51,6 +53,18 @@ async function initDb() {
       value TEXT NOT NULL
     );
   `);
+
+  // Migrate schema for existing databases (adds columns if missing)
+  try {
+    await db.exec(`ALTER TABLE trades ADD COLUMN strikePrice REAL;`);
+  } catch (e) {
+    // Ignore if column already exists
+  }
+  try {
+    await db.exec(`ALTER TABLE trades ADD COLUMN optionType TEXT;`);
+  } catch (e) {
+    // Ignore if column already exists
+  }
 
   // Seed trades if database is empty
   const tradeCount = await db.get('SELECT COUNT(*) as count FROM trades');
@@ -201,9 +215,9 @@ async function initDb() {
 
     for (const t of initialTrades) {
       await db.run(
-        `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status, t.recurring || 'NONE']
+        `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status, t.recurring || 'NONE', null, 'NONE']
       );
     }
   }
@@ -232,14 +246,14 @@ app.post('/api/trades', async (req, res) => {
     
     if (existing) {
       await db.run(
-        `UPDATE trades SET symbol=?, type=?, market=?, entryPrice=?, exitPrice=?, quantity=?, date=?, strategy=?, setupName=?, emotion=?, screenshot=?, sl=?, tp=?, pnl=?, pnlPercentage=?, notes=?, status=?, recurring=? WHERE id=?`,
-        [t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.id]
+        `UPDATE trades SET symbol=?, type=?, market=?, entryPrice=?, exitPrice=?, quantity=?, date=?, strategy=?, setupName=?, emotion=?, screenshot=?, sl=?, tp=?, pnl=?, pnlPercentage=?, notes=?, status=?, recurring=?, strikePrice=?, optionType=? WHERE id=?`,
+        [t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', t.id]
       );
     } else {
       await db.run(
-        `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE']
+        `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE']
       );
     }
     res.json({ success: true });
