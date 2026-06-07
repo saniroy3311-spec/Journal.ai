@@ -171,6 +171,10 @@ async function seedUserTrades(userId) {
     );
   }
 
+  await seedUserConfig(userId);
+}
+
+async function seedUserConfig(userId) {
   // Seed default configurations
   await db.run('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)', [`${userId}_starting_capital`, '1254300']);
   await db.run('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)', [`${userId}_dharma_custom_instructions`, '']);
@@ -291,8 +295,8 @@ app.post('/api/auth/register', async (req, res) => {
       [userId, cleanUsername, hashedPassword]
     );
 
-    // Seed mock data for this user
-    await seedUserTrades(userId);
+    // Seed only configurations (no trade logs) for new users
+    await seedUserConfig(userId);
 
     const token = jwt.sign({ id: userId, username: cleanUsername }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ token, user: { id: userId, username: cleanUsername } });
@@ -463,7 +467,11 @@ app.post('/api/reset', authenticateToken, async (req, res) => {
   try {
     await db.run('DELETE FROM trades WHERE userId = ?', [req.user.id]);
     await db.run('DELETE FROM config WHERE key LIKE ? OR key LIKE ?', [`${req.user.id}_%`, `${req.user.id}_%`]);
-    await seedUserTrades(req.user.id);
+    if (req.user.id === 'demo_user_id') {
+      await seedUserTrades(req.user.id);
+    } else {
+      await seedUserConfig(req.user.id);
+    }
     res.json({ success: true });
   } catch (err) {
     console.error(err);
