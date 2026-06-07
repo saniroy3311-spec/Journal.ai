@@ -183,10 +183,6 @@ function App() {
 
   const isFiltered = timeframe !== 'ALL' && (timeframe !== 'CUSTOM' || startDate !== '' || endDate !== '');
 
-  // Computed Portfolio Stats (Header shows actual total portfolio balance for the filtered range)
-  const closedTrades = filteredTrades.filter((t) => t.status === 'CLOSED');
-  const totalPnL = closedTrades.reduce((acc, t) => acc + t.pnl, 0);
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white text-[#1C1C1E] flex flex-col items-center justify-center font-sans antialiased">
@@ -220,7 +216,6 @@ function App() {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        totalPnL={totalPnL}
         startingCapital={startingCapital}
         onEditCapital={handleOpenCapitalModal}
       />

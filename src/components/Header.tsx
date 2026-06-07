@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 interface HeaderProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
-  totalPnL: number;
   startingCapital: number;
   onEditCapital: () => void;
 }
@@ -13,7 +12,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-  totalPnL,
   startingCapital,
   onEditCapital
 }) => {
@@ -23,8 +21,6 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'HISTORY' as TabType, label: 'History', icon: BookOpen },
     { id: 'ANALYTICS' as TabType, label: 'Analytics', icon: BarChart3 }
   ];
-
-  const pnlIsPositive = totalPnL >= 0;
 
   return (
     <>
@@ -83,21 +79,9 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-[9px] font-extrabold text-[#5C5C5E] group-hover:text-[#244230] uppercase tracking-wider block leading-none mb-1.5 flex items-center gap-1 justify-end transition-colors">
                 Start Capital <Edit2 size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </span>
-              <div className="flex items-center gap-2 justify-end">
-                <span className="text-sm font-bold text-[#1C1C1E] font-display">
-                  ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                </span>
-                <span
-                  className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                    pnlIsPositive
-                      ? 'bg-[#D4E8DC] text-[#166534]'
-                      : 'bg-[#FADCDC] text-[#991B1B]'
-                  }`}
-                >
-                  {pnlIsPositive ? '+' : ''}
-                  {totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                </span>
-              </div>
+              <span className="text-sm font-bold text-[#1C1C1E] font-display">
+                ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              </span>
             </div>
           </div>
         </div>
@@ -116,27 +100,15 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3 text-right">
           <div 
             onClick={onEditCapital}
-            className="cursor-pointer active:bg-[#EAEAE2]/50 p-1 -m-1 rounded transition-colors select-none"
+            className="cursor-pointer active:bg-[#EAEAE2]/50 p-1.5 -m-1.5 rounded transition-colors select-none"
             title="Click to edit starting capital"
           >
             <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5 flex items-center gap-0.5 justify-end">
               START CAP <Edit2 size={8} className="opacity-60" />
             </span>
-            <div className="flex items-center gap-1.5 justify-end">
-              <span className="text-xs font-extrabold text-[#1C1C1E] font-display">
-                ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-              </span>
-              <span
-                className={`text-[9px] font-black px-1.5 py-0.5 rounded ${
-                  pnlIsPositive
-                    ? 'bg-[#D4E8DC] text-[#166534]'
-                    : 'bg-[#FADCDC] text-[#991B1B]'
-                }`}
-              >
-                {pnlIsPositive ? '+' : ''}
-                {totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-              </span>
-            </div>
+            <span className="text-xs font-extrabold text-[#1C1C1E] font-display">
+              ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </span>
           </div>
         </div>
       </header>
