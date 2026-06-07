@@ -14,6 +14,13 @@ function App() {
   const [customInstructions, setCustomInstructions] = useState<string>('');
   const [startingCapital, setStartingCapital] = useState<number>(1254300);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isCapitalModalOpen, setIsCapitalModalOpen] = useState<boolean>(false);
+  const [tempCapital, setTempCapital] = useState<number>(1254300);
+
+  const handleOpenCapitalModal = () => {
+    setTempCapital(startingCapital);
+    setIsCapitalModalOpen(true);
+  };
 
   // Global Image modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -217,6 +224,7 @@ function App() {
         netEquity={netEquity}
         totalPnL={totalPnL}
         startingCapital={startingCapital}
+        onEditCapital={handleOpenCapitalModal}
       />
 
       {/* Global Date Filter Toolbar */}
@@ -287,7 +295,7 @@ function App() {
               <DashboardView
                 trades={filteredTrades}
                 startingCapital={startingCapital}
-                onUpdateStartingCapital={handleUpdateStartingCapital}
+                onEditCapital={handleOpenCapitalModal}
                 customInstructions={customInstructions}
                 setCustomInstructions={setCustomInstructions}
                 onSelectTradeImage={setSelectedImage}
@@ -336,6 +344,81 @@ function App() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Starting Capital Edit Modal */}
+      <AnimatePresence>
+        {isCapitalModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setIsCapitalModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              className="bg-white border border-[#D9D9D2] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-[#D9D9D2]/60">
+                <h3 className="text-base font-extrabold font-display text-[#1C1C1E] uppercase tracking-tight">
+                  Update Starting Capital
+                </h3>
+                <button
+                  onClick={() => setIsCapitalModalOpen(false)}
+                  className="text-[#5C5C5E] hover:text-[#1C1C1E] p-1 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wider block">
+                  Enter New Starting Capital (₹)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-extrabold text-[#5C5C5E]">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    value={tempCapital}
+                    onChange={(e) => setTempCapital(Number(e.target.value) || 0)}
+                    placeholder="e.g. 100000"
+                    className="w-full bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl pl-8 pr-4 py-3 text-sm font-extrabold text-[#1C1C1E] focus:outline-none focus:ring-1 focus:ring-[#244230]"
+                    autoFocus
+                  />
+                </div>
+                <p className="text-[10px] text-[#5C5C5E] font-medium leading-relaxed">
+                  Your Net Portfolio Equity, Win Rate impact metrics, Max Drawdown calculation, and AI Coach insights will instantly update based on this starting capital.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCapitalModalOpen(false)}
+                  className="px-4 py-2 border border-[#D9D9D2] text-[#5C5C5E] rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleUpdateStartingCapital(tempCapital);
+                    setIsCapitalModalOpen(false);
+                  }}
+                  className="px-4 py-2 bg-[#244230] text-white rounded-xl text-xs font-bold hover:bg-[#1b3224] transition-colors cursor-pointer"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Global Backdrop-blur Fullscreen Screenshot Viewer Modal */}
       <AnimatePresence>

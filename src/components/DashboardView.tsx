@@ -16,7 +16,8 @@ import {
   Percent,
   Wallet,
   Sparkles,
-  Info
+  Info,
+  Edit2
 } from 'lucide-react';
 import {
   AreaChart,
@@ -57,7 +58,7 @@ const INSIGHT_TONES = {
 interface DashboardViewProps {
   trades: Trade[];
   startingCapital: number;
-  onUpdateStartingCapital: (val: number) => void;
+  onEditCapital: () => void;
   customInstructions: string;
   setCustomInstructions: (text: string) => void;
   onSelectTradeImage: (url: string) => void;
@@ -67,7 +68,7 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({
   trades,
   startingCapital,
-  onUpdateStartingCapital,
+  onEditCapital,
   customInstructions,
   setCustomInstructions,
   onSelectTradeImage,
@@ -161,14 +162,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-2xl font-extrabold font-display text-[#1C1C1E] block">
               ₹{(initialCapital + stats.totalPnL).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </span>
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold mt-1 text-[#5C5C5E]">
-              <span>Base capital: ₹</span>
-              <input
-                type="number"
-                value={startingCapital}
-                onChange={(e) => onUpdateStartingCapital(Number(e.target.value) || 0)}
-                className="w-24 bg-[#FAFAF7] border border-[#D9D9D2]/70 px-1.5 py-0.5 rounded focus:outline-none focus:ring-1 focus:ring-[#244230] font-extrabold text-[#1C1C1E] text-[10px]"
-              />
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold mt-1.5 text-[#5C5C5E]">
+              <span>Base capital:</span>
+              <button 
+                onClick={onEditCapital}
+                className="bg-[#FAFAF7] hover:bg-[#EAEAE2] border border-[#D9D9D2]/70 px-2 py-0.5 rounded transition-colors font-extrabold text-[#1C1C1E] text-[10px] flex items-center gap-1 cursor-pointer select-none"
+                title="Click to edit starting capital"
+              >
+                ₹{startingCapital.toLocaleString('en-IN')} <Edit2 size={9} className="opacity-60" />
+              </button>
             </div>
           </div>
           <div className="p-3 rounded-xl bg-emerald-50 text-[#166534] flex-shrink-0">

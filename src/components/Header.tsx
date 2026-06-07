@@ -1,5 +1,4 @@
-import React from 'react';
-import { LayoutDashboard, PlusCircle, BookOpen, BarChart3, Radio } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, BookOpen, BarChart3, Radio, Edit2 } from 'lucide-react';
 import type { TabType } from '../types';
 import { motion } from 'framer-motion';
 
@@ -9,6 +8,7 @@ interface HeaderProps {
   netEquity: number;
   totalPnL: number;
   startingCapital: number;
+  onEditCapital: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,7 +16,8 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   netEquity,
   totalPnL,
-  startingCapital
+  startingCapital,
+  onEditCapital
 }) => {
   const tabs = [
     { id: 'DASHBOARD' as TabType, label: 'Dashboard', icon: LayoutDashboard },
@@ -80,9 +81,13 @@ export const Header: React.FC<HeaderProps> = ({
             <span>LIVE NSE/BSE</span>
           </div>
           <div className="flex items-center gap-5 text-right">
-            <div>
-              <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-1">
-                Start Capital
+            <div 
+              onClick={onEditCapital}
+              className="cursor-pointer group hover:bg-[#EAEAE2]/50 p-2 -m-2 rounded-xl transition-colors select-none"
+              title="Click to edit starting capital"
+            >
+              <span className="text-[9px] font-extrabold text-[#5C5C5E] group-hover:text-[#244230] uppercase tracking-wider block leading-none mb-1.5 flex items-center gap-1 justify-end transition-colors">
+                Start Capital <Edit2 size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </span>
               <span className="text-sm font-bold text-[#1C1C1E] font-display">
                 ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
@@ -124,9 +129,13 @@ export const Header: React.FC<HeaderProps> = ({
           </h1>
         </div>
         <div className="flex items-center gap-3 text-right">
-          <div>
-            <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5">
-              Start Cap
+          <div 
+            onClick={onEditCapital}
+            className="cursor-pointer active:bg-[#EAEAE2]/50 p-1 -m-1 rounded transition-colors select-none"
+            title="Click to edit starting capital"
+          >
+            <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5 flex items-center gap-0.5 justify-end">
+              Start Cap <Edit2 size={8} className="opacity-60" />
             </span>
             <span className="text-[10px] font-bold text-[#5C5C5E] font-display">
               ₹{(startingCapital / 1000).toFixed(0)}k
