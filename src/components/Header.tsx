@@ -8,13 +8,15 @@ interface HeaderProps {
   setActiveTab: (tab: TabType) => void;
   netEquity: number;
   totalPnL: number;
+  startingCapital: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   netEquity,
-  totalPnL
+  totalPnL,
+  startingCapital
 }) => {
   const tabs = [
     { id: 'DASHBOARD' as TabType, label: 'Dashboard', icon: LayoutDashboard },
@@ -71,30 +73,41 @@ export const Header: React.FC<HeaderProps> = ({
           })}
         </nav>
 
-        {/* Right Side: Live Badge + Equity */}
+        {/* Right Side: Live Badge + Capital Info */}
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EAEAE2] border border-[#D9D9D2]/50 text-xs font-semibold text-[#1C1C1E]">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EAEAE2] border border-[#D9D9D2]/50 text-xs font-semibold text-[#1C1C1E]">
             <Radio size={14} className="text-[#166534] animate-pulse" />
             <span>LIVE NSE/BSE</span>
           </div>
-          <div className="text-right">
-            <span className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wider block">
-              Net Portfolio Equity
-            </span>
-            <div className="flex items-center gap-2 justify-end">
-              <span className="text-lg font-extrabold text-[#1C1C1E] font-display">
-                ₹{netEquity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+          <div className="flex items-center gap-5 text-right">
+            <div>
+              <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-1">
+                Start Capital
               </span>
-              <span
-                className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
-                  pnlIsPositive
-                    ? 'bg-[#D4E8DC] text-[#166534]'
-                    : 'bg-[#FADCDC] text-[#991B1B]'
-                }`}
-              >
-                {pnlIsPositive ? '+' : ''}
-                {totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+              <span className="text-sm font-bold text-[#1C1C1E] font-display">
+                ₹{startingCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </span>
+            </div>
+            <div className="h-8 w-px bg-[#D9D9D2]/70" />
+            <div>
+              <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-1">
+                New Capital
+              </span>
+              <div className="flex items-center gap-2 justify-end">
+                <span className="text-lg font-black text-[#1C1C1E] font-display">
+                  ₹{netEquity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                </span>
+                <span
+                  className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                    pnlIsPositive
+                      ? 'bg-[#D4E8DC] text-[#166534]'
+                      : 'bg-[#FADCDC] text-[#991B1B]'
+                  }`}
+                >
+                  {pnlIsPositive ? '+' : ''}
+                  {totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -110,13 +123,24 @@ export const Header: React.FC<HeaderProps> = ({
             Journal.ai
           </h1>
         </div>
-        <div className="text-right">
-          <span className="text-[9px] font-bold text-[#5C5C5E] uppercase tracking-wider block">
-            Equity
-          </span>
-          <span className="text-sm font-extrabold text-[#1C1C1E] font-display">
-            ₹{netEquity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-          </span>
+        <div className="flex items-center gap-3 text-right">
+          <div>
+            <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5">
+              Start Cap
+            </span>
+            <span className="text-[10px] font-bold text-[#5C5C5E] font-display">
+              ₹{(startingCapital / 1000).toFixed(0)}k
+            </span>
+          </div>
+          <div className="h-6 w-px bg-[#D9D9D2]/70" />
+          <div>
+            <span className="text-[8px] font-bold text-[#5C5C5E] uppercase tracking-wider block leading-none mb-0.5">
+              New Cap
+            </span>
+            <span className="text-xs font-black text-[#1C1C1E] font-display">
+              ₹{netEquity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </span>
+          </div>
         </div>
       </header>
 

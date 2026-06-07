@@ -36,7 +36,7 @@ const STRATEGY_HOLD_TIMES: Record<string, number> = {
   'Naked Price Action': 2.5
 };
 
-export function calculateStats(trades: Trade[]): CalculatedStats {
+export function calculateStats(trades: Trade[], startingCapital: number = 1254300): CalculatedStats {
   const closedTrades = trades.filter(t => t.status === 'CLOSED');
   const totalTrades = closedTrades.length;
 
@@ -92,7 +92,7 @@ export function calculateStats(trades: Trade[]): CalculatedStats {
   const sortedTrades = [...closedTrades].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   // Max Drawdown (percentage peak-to-trough on sorted-by-date equity curve)
-  const initialCapital = 1254300;
+  const initialCapital = startingCapital;
   let runningEquity = initialCapital;
   let peak = initialCapital;
   let maxDdPct = 0;
@@ -137,7 +137,7 @@ export function calculateStats(trades: Trade[]): CalculatedStats {
   };
 }
 
-export function generateCoachInsights(trades: Trade[], customInstructions: string = ''): InsightCard[] {
+export function generateCoachInsights(trades: Trade[], customInstructions: string = '', startingCapital: number = 1254300): InsightCard[] {
   const closedTrades = trades.filter(t => t.status === 'CLOSED');
   const insights: InsightCard[] = [];
 
@@ -152,7 +152,7 @@ export function generateCoachInsights(trades: Trade[], customInstructions: strin
     return insights;
   }
 
-  const stats = calculateStats(trades);
+  const stats = calculateStats(trades, startingCapital);
 
   // 1. Best / Worst Day of Week (min 1 trade per day to qualify)
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

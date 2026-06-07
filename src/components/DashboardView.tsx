@@ -73,8 +73,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectTradeImage,
   onResetTrades
 }) => {
-  const stats = calculateStats(trades);
-  const insights = generateCoachInsights(trades, customInstructions);
+  const stats = calculateStats(trades, startingCapital);
+  const insights = generateCoachInsights(trades, customInstructions, startingCapital);
 
   const closedTrades = trades;
 

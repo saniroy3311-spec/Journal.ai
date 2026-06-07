@@ -216,6 +216,7 @@ function App() {
         setActiveTab={setActiveTab}
         netEquity={netEquity}
         totalPnL={totalPnL}
+        startingCapital={startingCapital}
       />
 
       {/* Global Date Filter Toolbar */}
