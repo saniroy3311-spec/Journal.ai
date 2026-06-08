@@ -156,40 +156,7 @@ function App() {
     }
   };
 
-  // Handle Reset Trades
-  const handleResetTrades = async () => {
-    if (confirm('Are you sure you want to reset all trades to default mock data? This will overwrite your current logs.')) {
-      try {
-        setIsLoading(true);
-        const res = await fetch('/api/reset', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Network response was not ok');
-        
-        // Reload all data
-        const [tradesRes, instRes, capRes] = await Promise.all([
-          fetch('/api/trades', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('/api/coach-instructions', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('/api/starting-capital', { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
-        if (tradesRes.ok && instRes.ok && capRes.ok) {
-          const tradesData = await tradesRes.json();
-          const instData = await instRes.json();
-          const capData = await capRes.json();
-          setTrades(tradesData);
-          setCustomInstructions(instData.value);
-          setStartingCapital(capData.value);
-        }
-        setTimeframe('ALL');
-      } catch (e) {
-        console.error('Failed to reset trades', e);
-        alert('Error: Could not reset database.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
+
 
   // Extract unique months in chronological order from trade logs
   const uniqueMonths = Array.from(
@@ -339,9 +306,7 @@ function App() {
                 startingCapital={startingCapital}
                 onEditCapital={handleOpenCapitalModal}
                 customInstructions={customInstructions}
-                setCustomInstructions={setCustomInstructions}
                 onSelectTradeImage={setSelectedImage}
-                onResetTrades={handleResetTrades}
               />
             </motion.div>
           )}

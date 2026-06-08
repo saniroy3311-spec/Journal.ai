@@ -16,7 +16,6 @@ import {
   Percent,
   Wallet,
   Sparkles,
-  Info,
   Edit2
 } from 'lucide-react';
 import {
@@ -60,9 +59,7 @@ interface DashboardViewProps {
   startingCapital: number;
   onEditCapital: () => void;
   customInstructions: string;
-  setCustomInstructions: (text: string) => void;
   onSelectTradeImage: (url: string) => void;
-  onResetTrades: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -70,9 +67,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   startingCapital,
   onEditCapital,
   customInstructions,
-  setCustomInstructions,
-  onSelectTradeImage,
-  onResetTrades
+  onSelectTradeImage
 }) => {
   const stats = calculateStats(trades, startingCapital);
   const insights = generateCoachInsights(trades, customInstructions, startingCapital);
@@ -433,34 +428,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           })}
         </div>
 
-        {/* Custom Instructions */}
-        <div className="pt-4 border-t border-[#D9D9D2]/60 space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="flex items-center gap-2 text-xs font-bold text-[#1C1C1E] uppercase tracking-wider">
-              <BrainCircuit size={16} className="text-[#5C5C5E]" />
-              <span>AI Coach Focus (Custom Context)</span>
-            </label>
-            <button
-              type="button"
-              onClick={onResetTrades}
-              className="text-[10px] font-extrabold text-[#991B1B] hover:text-[#7f1d1d] bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200/50 transition-colors cursor-pointer"
-            >
-              Reset Portfolio Data
-            </button>
-          </div>
-          <div className="flex gap-3">
-            <textarea
-              value={customInstructions}
-              onChange={(e) => setCustomInstructions(e.target.value)}
-              placeholder="e.g. 'Help me focus on cutting losses quicker on VWAP Rejection strategy' or 'I am struggling with FOMO on Friday crypto scalps'"
-              className="flex-1 min-h-[50px] p-3 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] resize-none font-medium text-[#1C1C1E]"
-            />
-          </div>
-          <span className="text-[10px] text-[#5C5C5E] flex items-center gap-1 font-semibold">
-            <Info size={12} />
-            <span>Type context to focus the locally computed coach panel feedback on specific weaknesses.</span>
-          </span>
-        </div>
       </div>
 
       {/* Row 5: Recent Trades */}
