@@ -185,8 +185,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <XAxis 
                   dataKey="name" 
                   stroke="#5C5C5E" 
-                  fontSize={11} 
-                  fontWeight={600}
+                  tick={{ fill: '#1C1C1E', fontSize: 13, fontWeight: 700 }}
                   tickLine={false} 
                   axisLine={false}
                   dy={10}
@@ -194,8 +193,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 />
                 <YAxis 
                   stroke="#5C5C5E" 
-                  fontSize={11} 
-                  fontWeight={600}
+                  tick={{ fill: '#1C1C1E', fontSize: 13, fontWeight: 700 }}
                   tickLine={false} 
                   axisLine={false}
                   domain={['dataMin - 10000', 'dataMax + 10000']}
@@ -281,7 +279,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Expectancy */}
-          <div className="bg-[#FAFAF7] border border-[#D9D9D2] p-4 rounded-xl flex flex-col justify-between space-y-1">
+          <div className="bg-[#FAFAF7] border border-[#D9D9D2] p-4 rounded-xl flex flex-col justify-between space-y-1 md:col-span-2">
             <span className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wider">
               Expectancy
             </span>
@@ -333,17 +331,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               -₹{Math.round(stats.avgLoss).toLocaleString('en-IN')}
             </span>
             <span className="text-[10px] font-semibold text-[#5C5C5E]">Mean of losing trades</span>
-          </div>
-
-          {/* Avg Hold */}
-          <div className="bg-[#FAFAF7] border border-[#D9D9D2] p-4 rounded-xl flex flex-col justify-between space-y-1">
-            <span className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wider">
-              Avg Hold
-            </span>
-            <span className="text-lg font-extrabold font-display text-[#1C1C1E]">
-              {stats.avgHoldStr}
-            </span>
-            <span className="text-[10px] font-semibold text-[#5C5C5E]">Avg duration based on setups</span>
           </div>
         </div>
       </div>
