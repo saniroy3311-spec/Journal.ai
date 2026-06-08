@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Trade, TabType } from './types';
+import type { Trade, TabType, PremarketCheckin } from './types';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
 import { LogTradeView } from './components/LogTradeView';
@@ -15,6 +15,7 @@ function App() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [customInstructions, setCustomInstructions] = useState<string>('');
   const [startingCapital, setStartingCapital] = useState<number>(1254300);
+  const [premarketCheckins, setPremarketCheckins] = useState<PremarketCheckin[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isCapitalModalOpen, setIsCapitalModalOpen] = useState<boolean>(false);
   const [tempCapital, setTempCapital] = useState<string>('1254300');
@@ -63,19 +64,20 @@ function App() {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [tradesRes, instRes, capRes] = await Promise.all([
+        const [tradesRes, instRes, capRes, checkinsRes] = await Promise.all([
           fetch('/api/trades', { headers: { 'Authorization': `Bearer ${token}` } }),
           fetch('/api/coach-instructions', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('/api/starting-capital', { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch('/api/starting-capital', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/premarket-checkins', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
-        if (tradesRes.status === 401 || instRes.status === 401 || capRes.status === 401 ||
-            tradesRes.status === 403 || instRes.status === 403 || capRes.status === 403) {
+        if (tradesRes.status === 401 || instRes.status === 401 || capRes.status === 401 || checkinsRes.status === 401 ||
+            tradesRes.status === 403 || instRes.status === 403 || capRes.status === 403 || checkinsRes.status === 403) {
           handleLogout();
           return;
         }
 
-        if (!tradesRes.ok || !instRes.ok || !capRes.ok) {
+        if (!tradesRes.ok || !instRes.ok || !capRes.ok || !checkinsRes.ok) {
           throw new Error('Failed to load data from server');
         }
         const tradesData = await tradesRes.json();
@@ -86,9 +88,11 @@ function App() {
         }));
         const instData = await instRes.json();
         const capData = await capRes.json();
+        const checkinsData = await checkinsRes.json();
         setTrades(parsedTrades);
         setCustomInstructions(instData.value);
         setStartingCapital(capData.value);
+        setPremarketCheckins(checkinsData);
       } catch (e) {
         console.error('Error loading data from API', e);
       } finally {
@@ -162,6 +166,23 @@ function App() {
     } catch (e) {
       console.error('Failed to delete trade', e);
       alert('Error: Could not delete the trade from the database.');
+    }
+  };
+
+  const handleAddPremarketCheckin = async (newCheckin: PremarketCheckin) => {
+    const updatedCheckins = [newCheckin, ...premarketCheckins];
+    setPremarketCheckins(updatedCheckins);
+    try {
+      await fetch('/api/premarket-checkins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ checkins: updatedCheckins })
+      });
+    } catch (e) {
+      console.error('Failed to save premarket checkin', e);
     }
   };
 
@@ -374,6 +395,8 @@ function App() {
                 customInstructions={customInstructions}
                 setCustomInstructions={setCustomInstructions}
                 startingCapital={startingCapital}
+                premarketCheckins={premarketCheckins}
+                onAddCheckin={handleAddPremarketCheckin}
               />
             </motion.div>
           )}

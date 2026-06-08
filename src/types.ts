@@ -37,5 +37,13 @@ export interface EmotionOption {
   label: string;
 }
 
+export interface PremarketCheckin {
+  id: string;
+  date: string;
+  energy: number; // 1-5
+  focus: 'Calm' | 'Anxious' | 'Distracted' | 'Overexcited';
+  targetRule: string;
+}
+
 export type TabType = 'DASHBOARD' | 'LOG' | 'HISTORY' | 'ANALYTICS' | 'COACH';
 export type AnalyticsSubTabType = 'OVERVIEW' | 'STRATEGY' | 'CALENDAR' | 'PSYCHOLOGY' | 'TAGS';

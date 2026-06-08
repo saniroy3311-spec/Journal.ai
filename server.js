@@ -522,6 +522,34 @@ app.post('/api/coach-instructions', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/premarket-checkins', authenticateToken, async (req, res) => {
+  try {
+    const resRow = await db.execute({
+      sql: 'SELECT value FROM config WHERE key = ?',
+      args: [`${req.user.id}_premarket_checkins`]
+    });
+    const row = resRow.rows[0];
+    res.json(row ? JSON.parse(row.value) : []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch pre-market checkins' });
+  }
+});
+
+app.post('/api/premarket-checkins', authenticateToken, async (req, res) => {
+  try {
+    const { checkins } = req.body;
+    await db.execute({
+      sql: 'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
+      args: [`${req.user.id}_premarket_checkins`, JSON.stringify(checkins)]
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update pre-market checkins' });
+  }
+});
+
 app.get('/api/custom-strategies', authenticateToken, async (req, res) => {
   try {
     const resRow = await db.execute({
