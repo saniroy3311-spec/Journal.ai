@@ -73,9 +73,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         
         {/* Brand Header */}
         <div className="flex flex-col items-center space-y-3 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#244230] to-[#5C8A6E] flex items-center justify-center shadow-lg shadow-[#244230]/20">
-            <span className="text-white text-xl font-black font-display">J</span>
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Journal.ai Logo" 
+            className="w-12 h-12 rounded-2xl object-cover border border-[#D9D9D2]/30 shadow-lg shadow-[#244230]/15"
+          />
           <div>
             <h1 className="text-2xl font-black font-display text-[#1C1C1E] tracking-tight">
               Journal.ai
