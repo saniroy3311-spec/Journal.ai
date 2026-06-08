@@ -233,7 +233,7 @@ function App() {
               <img 
                 src="/logo.png" 
                 alt="Journal.ai Logo" 
-                className="w-11 h-11 max-w-none -translate-y-0.5 object-cover"
+                className="w-full h-full object-contain scale-[1.5] -translate-y-[14%]"
               />
             </div>
           </div>
@@ -269,7 +269,7 @@ function App() {
               <img 
                 src="/logo.png" 
                 alt="Journal.ai Logo" 
-                className="w-12 h-12 max-w-none -translate-y-1 object-cover"
+                className="w-full h-full object-contain scale-[1.5] -translate-y-[14%]"
               />
             </div>
             <div className="flex-1 min-w-0">

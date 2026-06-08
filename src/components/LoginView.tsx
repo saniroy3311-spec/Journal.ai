@@ -87,7 +87,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             <img 
               src="/logo.png" 
               alt="Journal.ai Logo" 
-              className="w-16 h-16 max-w-none -translate-y-1.5 object-cover"
+              className="w-full h-full object-contain scale-[1.5] -translate-y-[14%]"
             />
           </div>
           <div>
