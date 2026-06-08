@@ -191,26 +191,6 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
 
   const selectedDayTrades = selectedCalendarDay ? getDayTrades(selectedCalendarDay) : [];
 
-  if (closedTrades.length === 0) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 text-center space-y-4">
-        <div className="border-b border-[#D9D9D2] pb-5 text-left">
-          <h2 className="text-xl font-bold font-display text-[#1C1C1E]">
-            Performance Analytics
-          </h2>
-          <p className="text-xs font-medium text-[#5C5C5E]">
-            Algorithmic insights, strategy validation, calendar heatmaps, and psychological correlation
-          </p>
-        </div>
-        <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl space-y-2">
-          <Info size={40} className="mx-auto text-[#D9D9D2]" />
-          <h3 className="text-sm font-bold text-[#1C1C1E]">No analytics available</h3>
-          <p className="text-xs text-[#5C5C5E] font-medium">Please close at least one trade to activate analytics dashboards.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6 pb-24 md:pb-12 space-y-12">
       
@@ -238,167 +218,175 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
             <p className="text-[11px] text-[#5C5C5E] font-semibold">Net profit, win rate ratio, and position size distribution</p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            {/* Monthly Realized P&L */}
-            <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
-              <div>
-                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                  Monthly Realized P&L
-                </h3>
-                <p className="text-[11px] text-[#5C5C5E] font-semibold">Net profit or loss grouped by month</p>
-              </div>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" vertical={false} />
-                    <XAxis dataKey="month" stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
-                    <YAxis stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
-                    <Tooltip
-                      formatter={(val: any) => [
-                        `₹${(val || 0).toLocaleString('en-IN')}`,
-                        'Monthly P&L'
-                      ]}
-                      contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
-                    />
-                    <Bar dataKey="pnl">
-                      {monthlyChartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.pnl >= 0 ? '#5C8A6E' : '#B56B6B'}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+          {closedTrades.length === 0 ? (
+            <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl text-center space-y-2">
+              <Info size={40} className="mx-auto text-[#D9D9D2]" />
+              <h3 className="text-sm font-bold text-[#1C1C1E]">No analytics available</h3>
+              <p className="text-xs text-[#5C5C5E] font-medium">Please close at least one trade to activate overview analytics.</p>
             </div>
-
-            {/* Wins / Losses Ratio */}
-            <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow flex flex-col justify-between space-y-4">
-              <div>
-                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                  Win / Loss Ratio
-                </h3>
-                <p className="text-[11px] text-[#5C5C5E] font-semibold">Proportion of profitable vs losing closed trades</p>
-              </div>
-              <div className="flex flex-col md:flex-row items-center justify-around gap-6">
-                {/* Pie chart */}
-                <div className="h-44 w-44">
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Monthly Realized P&L */}
+              <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
+                <div>
+                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                    Monthly Realized P&L
+                  </h3>
+                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Net profit or loss grouped by month</p>
+                </div>
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={winLossPieData}
-                        innerRadius={50}
-                        outerRadius={70}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {winLossPieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
+                    <BarChart data={monthlyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" vertical={false} />
+                      <XAxis dataKey="month" stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
+                      <YAxis stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
                       <Tooltip
-                        formatter={(value) => [`${value} trades`, 'Count']}
+                        formatter={(val: any) => [
+                          `₹${(val || 0).toLocaleString('en-IN')}`,
+                          'Monthly P&L'
+                        ]}
                         contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
                       />
-                    </PieChart>
+                      <Bar dataKey="pnl">
+                        {monthlyChartData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.pnl >= 0 ? '#5C8A6E' : '#B56B6B'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
-                {/* Legend list */}
-                <div className="space-y-4 text-xs font-bold text-[#1C1C1E]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-md bg-[#5C8A6E]" />
-                    <div>
-                      <span className="text-[#5C5C5E] block text-[10px] uppercase">WINS</span>
-                      <span>{winCount} Trades ({((winCount / closedTrades.length) * 100).toFixed(1)}%)</span>
-                    </div>
+              </div>
+
+              {/* Wins / Losses Ratio */}
+              <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow flex flex-col justify-between space-y-4">
+                <div>
+                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                    Win / Loss Ratio
+                  </h3>
+                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Proportion of profitable vs losing closed trades</p>
+                </div>
+                <div className="flex flex-col md:flex-row items-center justify-around gap-6">
+                  {/* Pie chart */}
+                  <div className="h-44 w-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={winLossPieData}
+                          innerRadius={50}
+                          outerRadius={70}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {winLossPieData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value) => [`${value} trades`, 'Count']}
+                          contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-md bg-[#B56B6B]" />
-                    <div>
-                      <span className="text-[#5C5C5E] block text-[10px] uppercase">LOSSES</span>
-                      <span>{lossCount} Trades ({((lossCount / closedTrades.length) * 100).toFixed(1)}%)</span>
+                  {/* Legend list */}
+                  <div className="space-y-4 text-xs font-bold text-[#1C1C1E]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-md bg-[#5C8A6E]" />
+                      <div>
+                        <span className="text-[#5C5C5E] block text-[10px] uppercase">WINS</span>
+                        <span>{winCount} Trades ({((winCount / closedTrades.length) * 100).toFixed(1)}%)</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-md bg-[#B56B6B]" />
+                      <div>
+                        <span className="text-[#5C5C5E] block text-[10px] uppercase">LOSSES</span>
+                        <span>{lossCount} Trades ({((lossCount / closedTrades.length) * 100).toFixed(1)}%)</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Position Size vs PNL Scatter Plot */}
-            <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4 lg:col-span-2">
-              <div>
-                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                  Trade Size vs Realized P&L
-                </h3>
-                <p className="text-[11px] text-[#5C5C5E] font-semibold">
-                  Scatter distribution of total position risk capital vs net trade outcome
-                </p>
-              </div>
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart margin={{ top: 20, right: 20, bottom: 10, left: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" />
-                    <XAxis
-                      type="number"
-                      dataKey="size"
-                      name="Position Size"
-                      unit="₹"
-                      stroke="#5C5C5E"
-                      fontSize={11}
-                      fontWeight={600}
-                      tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                    />
-                    <YAxis
-                      type="number"
-                      dataKey="pnl"
-                      name="Net P&L"
-                      unit="₹"
-                      stroke="#5C5C5E"
-                      fontSize={11}
-                      fontWeight={600}
-                      tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                    />
-                    <Tooltip
-                      cursor={{ strokeDasharray: '3 3' }}
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-white border border-[#D9D9D2] p-4 rounded-xl shadow-lg space-y-1 text-xs">
-                              <p className="font-extrabold text-[#1C1C1E]">{data.symbol}</p>
-                              <p className="font-semibold text-[#5C5C5E]">{data.strategy}</p>
-                              <div className="flex justify-between gap-4 pt-1.5 border-t border-[#D9D9D2]/50 font-bold">
-                                <span>Position Size:</span>
-                                <span>₹{data.size.toLocaleString('en-IN')}</span>
+              {/* Position Size vs PNL Scatter Plot */}
+              <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4 lg:col-span-2">
+                <div>
+                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                    Trade Size vs Realized P&L
+                  </h3>
+                  <p className="text-[11px] text-[#5C5C5E] font-semibold">
+                    Scatter distribution of total position risk capital vs net trade outcome
+                  </p>
+                </div>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart margin={{ top: 20, right: 20, bottom: 10, left: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" />
+                      <XAxis
+                        type="number"
+                        dataKey="size"
+                        name="Position Size"
+                        unit="₹"
+                        stroke="#5C5C5E"
+                        fontSize={11}
+                        fontWeight={600}
+                        tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                      />
+                      <YAxis
+                        type="number"
+                        dataKey="pnl"
+                        name="Net P&L"
+                        unit="₹"
+                        stroke="#5C5C5E"
+                        fontSize={11}
+                        fontWeight={600}
+                        tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip
+                        cursor={{ strokeDasharray: '3 3' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-[#D9D9D2] p-4 rounded-xl shadow-lg space-y-1 text-xs">
+                                <p className="font-extrabold text-[#1C1C1E]">{data.symbol}</p>
+                                <p className="font-semibold text-[#5C5C5E]">{data.strategy}</p>
+                                <div className="flex justify-between gap-4 pt-1.5 border-t border-[#D9D9D2]/50 font-bold">
+                                  <span>Position Size:</span>
+                                  <span>₹{data.size.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div className={`flex justify-between gap-4 font-black ${
+                                  data.pnl >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
+                                }`}>
+                                  <span>Outcome P&L:</span>
+                                  <span>{data.pnl >= 0 ? '+' : ''}₹{data.pnl.toLocaleString('en-IN')}</span>
+                                </div>
                               </div>
-                              <div className={`flex justify-between gap-4 font-black ${
-                                data.pnl >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
-                              }`}>
-                                <span>Outcome P&L:</span>
-                                <span>{data.pnl >= 0 ? '+' : ''}₹{data.pnl.toLocaleString('en-IN')}</span>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Scatter data={scatterData}>
-                      {scatterData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.pnl >= 0 ? '#5C8A6E' : '#B56B6B'}
-                          className="cursor-pointer"
-                        />
-                      ))}
-                    </Scatter>
-                  </ScatterChart>
-                </ResponsiveContainer>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Scatter data={scatterData}>
+                        {scatterData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.pnl >= 0 ? '#5C8A6E' : '#B56B6B'}
+                            className="cursor-pointer"
+                          />
+                        ))}
+                      </Scatter>
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
 
-          </div>
+            </div>
+          )}
         </section>
 
         {/* ----------------------------------------------------
@@ -413,9 +401,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
             <p className="text-[11px] text-[#5C5C5E] font-semibold">Win rates and cumulative profitability per strategy setup</p>
           </div>
           
-          {strategyStats.length === 0 ? (
-            <div className="bg-white border border-[#D9D9D2] border-dashed p-8 text-center text-[#5C5C5E] text-xs rounded-2xl">
-              No strategy data logged on your closed trades yet.
+          {closedTrades.length === 0 ? (
+            <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl text-center space-y-2">
+              <Info size={40} className="mx-auto text-[#D9D9D2]" />
+              <h3 className="text-sm font-bold text-[#1C1C1E]">No strategy data</h3>
+              <p className="text-xs text-[#5C5C5E] font-medium">Please close at least one trade to view strategy breakdowns.</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -672,85 +662,93 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
             <p className="text-[11px] text-[#5C5C5E] font-semibold">Correlation between execution mindset and net outcome</p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Emotion Average PNL Bar Chart (Col 1 & 2) */}
-            <div className="lg:col-span-2 bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
-              <div>
-                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                  Average P&L By Mindset Emotion
-                </h3>
-                <p className="text-[11px] text-[#5C5C5E] font-semibold">Correlation between your execution mindset and net outcome</p>
-              </div>
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={psychologyStats}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" vertical={false} />
-                    <XAxis dataKey="emoji" stroke="#5C5C5E" fontSize={16} tickLine={false} />
-                    <YAxis stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
-                    <Tooltip
-                      formatter={(val: any) => [`₹${Math.round(val || 0).toLocaleString('en-IN')}`, 'Avg P&L']}
-                      contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
-                    />
-                    <Bar dataKey="avgPnL">
-                      {psychologyStats.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.avgPnL >= 0 ? '#5C8A6E' : '#B56B6B'}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+          {closedTrades.length === 0 ? (
+            <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl text-center space-y-2">
+              <Info size={40} className="mx-auto text-[#D9D9D2]" />
+              <h3 className="text-sm font-bold text-[#1C1C1E]">No mindset data</h3>
+              <p className="text-xs text-[#5C5C5E] font-medium">Please close at least one trade to view mindset metrics.</p>
             </div>
-
-            {/* Emotion Correlation Stats Table (Col 3) */}
-            <div className="bg-white border border-[#D9D9D2] rounded-2xl overflow-hidden premium-shadow h-fit">
-              <div className="p-5 border-b border-[#D9D9D2]/40">
-                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                  Mindset Diagnostics
-                </h3>
-                <p className="text-[11px] text-[#5C5C5E] font-semibold">Breakdown of metrics classified by emotional tag</p>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* Emotion Average PNL Bar Chart (Col 1 & 2) */}
+              <div className="lg:col-span-2 bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
+                <div>
+                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                    Average P&L By Mindset Emotion
+                  </h3>
+                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Correlation between your execution mindset and net outcome</p>
+                </div>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={psychologyStats}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" vertical={false} />
+                      <XAxis dataKey="emoji" stroke="#5C5C5E" fontSize={16} tickLine={false} />
+                      <YAxis stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
+                      <Tooltip
+                        formatter={(val: any) => [`₹${Math.round(val || 0).toLocaleString('en-IN')}`, 'Avg P&L']}
+                        contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
+                      />
+                      <Bar dataKey="avgPnL">
+                        {psychologyStats.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.avgPnL >= 0 ? '#5C8A6E' : '#B56B6B'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[300px] text-xs font-bold text-[#1C1C1E]">
-                  <thead>
-                    <tr className="bg-[#FAFAF7] border-b border-[#D9D9D2] text-[#5C5C5E] uppercase text-[10px] tracking-wider">
-                      <th className="px-4 py-2.5 text-left">Emotion</th>
-                      <th className="px-4 py-2.5 text-center">Trades</th>
-                      <th className="px-4 py-2.5 text-center">Win %</th>
-                      <th className="px-4 py-2.5 text-right">Avg P&L</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#D9D9D2]/40">
-                    {psychologyStats.map((stat) => (
-                      <tr key={stat.emoji} className="hover:bg-[#FAFAF7]/50">
-                        <td className="px-4 py-3 flex items-center gap-2">
-                          <span className="text-lg">{stat.emoji}</span>
-                          <span className="font-extrabold">{stat.label}</span>
-                        </td>
-                        <td className="px-4 py-3 text-center text-[#5C5C5E]">{stat.count}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`px-1.5 py-0.5 rounded-full ${
-                            stat.winRate >= 50 ? 'bg-[#D4E8DC] text-[#166534]' : 'bg-orange-50 text-orange-700'
-                          }`}>
-                            {stat.winRate.toFixed(0)}%
-                          </span>
-                        </td>
-                        <td className={`px-4 py-3 text-right font-black ${
-                          stat.avgPnL >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
-                        }`}>
-                          {stat.avgPnL >= 0 ? '+' : ''}₹{Math.round(stat.avgPnL).toLocaleString('en-IN')}
-                        </td>
+
+              {/* Emotion Correlation Stats Table (Col 3) */}
+              <div className="bg-white border border-[#D9D9D2] rounded-2xl overflow-hidden premium-shadow h-fit">
+                <div className="p-5 border-b border-[#D9D9D2]/40">
+                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                    Mindset Diagnostics
+                  </h3>
+                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Breakdown of metrics classified by emotional tag</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[300px] text-xs font-bold text-[#1C1C1E]">
+                    <thead>
+                      <tr className="bg-[#FAFAF7] border-b border-[#D9D9D2] text-[#5C5C5E] uppercase text-[10px] tracking-wider">
+                        <th className="px-4 py-2.5 text-left">Emotion</th>
+                        <th className="px-4 py-2.5 text-center">Trades</th>
+                        <th className="px-4 py-2.5 text-center">Win %</th>
+                        <th className="px-4 py-2.5 text-right">Avg P&L</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#D9D9D2]/40">
+                      {psychologyStats.map((stat) => (
+                        <tr key={stat.emoji} className="hover:bg-[#FAFAF7]/50">
+                          <td className="px-4 py-3 flex items-center gap-2">
+                            <span className="text-lg">{stat.emoji}</span>
+                            <span className="font-extrabold">{stat.label}</span>
+                          </td>
+                          <td className="px-4 py-3 text-center text-[#5C5C5E]">{stat.count}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`px-1.5 py-0.5 rounded-full ${
+                              stat.winRate >= 50 ? 'bg-[#D4E8DC] text-[#166534]' : 'bg-orange-50 text-orange-700'
+                            }`}>
+                              {stat.winRate.toFixed(0)}%
+                            </span>
+                          </td>
+                          <td className={`px-4 py-3 text-right font-black ${
+                            stat.avgPnL >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
+                          }`}>
+                            {stat.avgPnL >= 0 ? '+' : ''}₹{Math.round(stat.avgPnL).toLocaleString('en-IN')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
 
-          </div>
+            </div>
+          )}
         </section>
 
         {/* ----------------------------------------------------
@@ -765,97 +763,105 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
             <p className="text-[11px] text-[#5C5C5E] font-semibold">Cost and profit attribution per tag setups (like #FOMO vs #RulesFollowed)</p>
           </div>
           
-          <div className="space-y-6">
-            {/* Net P&L per Tag Bar Chart */}
-            <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
-              <div>
-                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                  Net P&L Per Tag
-                </h3>
-                <p className="text-[11px] text-[#5C5C5E] font-semibold">Cost and profit attribution per tag setups (like #FOMO vs #RulesFollowed)</p>
-              </div>
-              {tagStats.length === 0 ? (
-                <div className="text-center py-8 text-xs text-[#5C5C5E] font-medium border border-[#D9D9D2]/40 border-dashed rounded-xl bg-[#FAFAF7]">
-                  No tags found. Add tags to your trades to see advanced tagging statistics.
+          {closedTrades.length === 0 ? (
+            <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl text-center space-y-2">
+              <Info size={40} className="mx-auto text-[#D9D9D2]" />
+              <h3 className="text-sm font-bold text-[#1C1C1E]">No tag data</h3>
+              <p className="text-xs text-[#5C5C5E] font-medium">Please log tags on closed trades to view tag analysis.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Net P&L per Tag Bar Chart */}
+              <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
+                <div>
+                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                    Net P&L Per Tag
+                  </h3>
+                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Cost and profit attribution per tag setups (like #FOMO vs #RulesFollowed)</p>
                 </div>
-              ) : (
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={tagStats} layout="vertical" margin={{ left: 30 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" horizontal={false} />
-                      <XAxis type="number" stroke="#5C5C5E" fontSize={11} fontWeight={600} />
-                      <YAxis dataKey="name" type="category" stroke="#5C5C5E" fontSize={11} fontWeight={600} width={120} tickLine={false} />
-                      <Tooltip
-                        formatter={(val: any) => [`₹${(val || 0).toLocaleString('en-IN')}`, 'Net P&L']}
-                        contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
-                      />
-                      <Bar dataKey="netPnL">
-                        {tagStats.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={entry.netPnL >= 0 ? '#5C8A6E' : '#B56B6B'}
-                          />
+                {tagStats.length === 0 ? (
+                  <div className="text-center py-8 text-xs text-[#5C5C5E] font-medium border border-[#D9D9D2]/40 border-dashed rounded-xl bg-[#FAFAF7]">
+                    No tags found. Add tags to your trades to see advanced tagging statistics.
+                  </div>
+                ) : (
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={tagStats} layout="vertical" margin={{ left: 30 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" horizontal={false} />
+                        <XAxis type="number" stroke="#5C5C5E" fontSize={11} fontWeight={600} />
+                        <YAxis dataKey="name" type="category" stroke="#5C5C5E" fontSize={11} fontWeight={600} width={120} tickLine={false} />
+                        <Tooltip
+                          formatter={(val: any) => [`₹${(val || 0).toLocaleString('en-IN')}`, 'Net P&L']}
+                          contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
+                        />
+                        <Bar dataKey="netPnL">
+                          {tagStats.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.netPnL >= 0 ? '#5C8A6E' : '#B56B6B'}
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              {/* Tag Details Table */}
+              {tagStats.length > 0 && (
+                <div className="bg-white border border-[#D9D9D2] rounded-2xl overflow-hidden premium-shadow">
+                  <div className="p-6 border-b border-[#D9D9D2]/40">
+                    <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                      Tag Statistics Engine
+                    </h3>
+                    <p className="text-[11px] text-[#5C5C5E] font-semibold">Table showing net outcomes of trades categorized by custom tags</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[600px] text-xs font-bold text-[#1C1C1E]">
+                      <thead>
+                        <tr className="bg-[#FAFAF7] border-b border-[#D9D9D2] text-[#5C5C5E] uppercase text-[10px] tracking-wider">
+                          <th className="px-6 py-3.5 text-left">Tag Label</th>
+                          <th className="px-6 py-3.5 text-center">Trades</th>
+                          <th className="px-6 py-3.5 text-center">Wins</th>
+                          <th className="px-6 py-3.5 text-center">Win Rate</th>
+                          <th className="px-6 py-3.5 text-right">Net P&L</th>
+                          <th className="px-6 py-3.5 text-right">Avg P&L</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#D9D9D2]/40">
+                        {tagStats.map((t) => (
+                          <tr key={t.name} className="hover:bg-[#FAFAF7]/50">
+                            <td className="px-6 py-4 font-black text-[#244230]">{t.name}</td>
+                            <td className="px-6 py-4 text-center text-[#5C5C5E]">{t.count}</td>
+                            <td className="px-6 py-4 text-center text-[#5C5C5E]">{t.wins}</td>
+                            <td className="px-6 py-4 text-center">
+                              <span className={`px-2 py-0.5 rounded-full ${
+                                t.winRate >= 50 ? 'bg-[#D4E8DC] text-[#166534]' : 'bg-orange-50 text-orange-700'
+                              }`}>
+                                {t.winRate.toFixed(1)}%
+                              </span>
+                            </td>
+                            <td className={`px-6 py-4 text-right font-black ${
+                              t.netPnL >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
+                            }`}>
+                              {t.netPnL >= 0 ? '+' : ''}₹{t.netPnL.toLocaleString('en-IN')}
+                            </td>
+                            <td className={`px-6 py-4 text-right ${
+                              t.avgPnL >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
+                            }`}>
+                              {t.avgPnL >= 0 ? '+' : ''}₹{Math.round(t.avgPnL).toLocaleString('en-IN')}
+                            </td>
+                          </tr>
                         ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
+
             </div>
-
-            {/* Tag Details Table */}
-            {tagStats.length > 0 && (
-              <div className="bg-white border border-[#D9D9D2] rounded-2xl overflow-hidden premium-shadow">
-                <div className="p-6 border-b border-[#D9D9D2]/40">
-                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                    Tag Statistics Engine
-                  </h3>
-                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Table showing net outcomes of trades categorized by custom tags</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[600px] text-xs font-bold text-[#1C1C1E]">
-                    <thead>
-                      <tr className="bg-[#FAFAF7] border-b border-[#D9D9D2] text-[#5C5C5E] uppercase text-[10px] tracking-wider">
-                        <th className="px-6 py-3.5 text-left">Tag Label</th>
-                        <th className="px-6 py-3.5 text-center">Trades</th>
-                        <th className="px-6 py-3.5 text-center">Wins</th>
-                        <th className="px-6 py-3.5 text-center">Win Rate</th>
-                        <th className="px-6 py-3.5 text-right">Net P&L</th>
-                        <th className="px-6 py-3.5 text-right">Avg P&L</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#D9D9D2]/40">
-                      {tagStats.map((t) => (
-                        <tr key={t.name} className="hover:bg-[#FAFAF7]/50">
-                          <td className="px-6 py-4 font-black text-[#244230]">{t.name}</td>
-                          <td className="px-6 py-4 text-center text-[#5C5C5E]">{t.count}</td>
-                          <td className="px-6 py-4 text-center text-[#5C5C5E]">{t.wins}</td>
-                          <td className="px-6 py-4 text-center">
-                            <span className={`px-2 py-0.5 rounded-full ${
-                              t.winRate >= 50 ? 'bg-[#D4E8DC] text-[#166534]' : 'bg-orange-50 text-orange-700'
-                            }`}>
-                              {t.winRate.toFixed(1)}%
-                            </span>
-                          </td>
-                          <td className={`px-6 py-4 text-right font-black ${
-                            t.netPnL >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
-                          }`}>
-                            {t.netPnL >= 0 ? '+' : ''}₹{t.netPnL.toLocaleString('en-IN')}
-                          </td>
-                          <td className={`px-6 py-4 text-right ${
-                            t.avgPnL >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
-                          }`}>
-                            {t.avgPnL >= 0 ? '+' : ''}₹{Math.round(t.avgPnL).toLocaleString('en-IN')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-          </div>
+          )}
         </section>
 
       </div>
