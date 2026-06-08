@@ -250,25 +250,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
 
   const selectedDayTrades = selectedCalendarDay ? getDayTrades(selectedCalendarDay) : [];
 
-  if (closedTrades.length === 0) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 text-center space-y-4">
-        <div className="border-b border-[#D9D9D2] pb-5 text-left">
-          <h2 className="text-xl font-bold font-display text-[#1C1C1E]">
-            Performance Analytics
-          </h2>
-          <p className="text-xs font-medium text-[#5C5C5E]">
-            Algorithmic insights, strategy validation, calendar heatmaps, and psychological correlation
-          </p>
-        </div>
-        <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl space-y-2">
-          <Info size={40} className="mx-auto text-[#D9D9D2]" />
-          <h3 className="text-sm font-bold text-[#1C1C1E]">No analytics available</h3>
-          <p className="text-xs text-[#5C5C5E] font-medium">Please close at least one trade to activate analytics dashboards.</p>
-        </div>
-      </div>
-    );
-  }
+  // No early return — always show full layout with section navigation
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6 pb-24 md:pb-12 space-y-6">

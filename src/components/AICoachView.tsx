@@ -1,37 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { Trade, PremarketCheckin } from '../types';
+import type { Trade } from '../types';
 import { 
   Sparkles, 
   BrainCircuit, 
   Loader2, 
-  Calendar, 
+  Calendar,
   AlertTriangle, 
   BadgeAlert, 
   TrendingUp, 
   Send, 
   User, 
   MessageSquare, 
-  Star, 
   ShieldAlert,
   ListTodo
 } from 'lucide-react';
-import { parseISO, getDay, format } from 'date-fns';
+import { parseISO, getDay } from 'date-fns';
 
 interface AICoachViewProps {
   trades: Trade[];
   customInstructions: string;
   setCustomInstructions: (val: string) => void;
   startingCapital: number;
-  premarketCheckins?: PremarketCheckin[];
-  onAddCheckin?: (checkin: PremarketCheckin) => void;
 }
 
 export const AICoachView: React.FC<AICoachViewProps> = ({
   trades,
   customInstructions,
   setCustomInstructions,
-  premarketCheckins = [],
-  onAddCheckin
 }) => {
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditResult, setAuditResult] = useState<{
@@ -46,10 +41,7 @@ export const AICoachView: React.FC<AICoachViewProps> = ({
     score: number;
   } | null>(null);
 
-  // Pre-Market Logger state
-  const [energy, setEnergy] = useState<number>(5);
-  const [focus, setFocus] = useState<'Calm' | 'Anxious' | 'Distracted' | 'Overexcited'>('Calm');
-  const [targetRule, setTargetRule] = useState<string>('');
+
 
   // Chatbox state
   const [chatInput, setChatInput] = useState<string>('');
@@ -217,25 +209,7 @@ export const AICoachView: React.FC<AICoachViewProps> = ({
     }, 1500);
   };
 
-  // Pre-Market Logger submission
-  const handleCheckinSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!targetRule.trim()) return;
 
-    const newCheckin: PremarketCheckin = {
-      id: Math.random().toString(36).substring(2, 11),
-      date: new Date().toISOString(),
-      energy,
-      focus,
-      targetRule: targetRule.trim()
-    };
-
-    if (onAddCheckin) {
-      onAddCheckin(newCheckin);
-    }
-    setTargetRule('');
-    alert('Pre-Market check-in successfully logged!');
-  };
 
   // AI Chat reply simulator
   const handleSendChatMessage = (textToSend?: string) => {
@@ -307,92 +281,8 @@ export const AICoachView: React.FC<AICoachViewProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         
-        {/* Left Column: Guidelines & Pre-Market check-in (Col 1) */}
+        {/* Left Column: Guidelines & Audit (Col 1) */}
         <div className="space-y-6 md:col-span-1">
-          
-          {/* Pre-Market Check-In Logger */}
-          <div className="bg-white border border-[#D9D9D2] p-5 rounded-2xl premium-shadow space-y-4">
-            <div className="flex items-center gap-2 border-b border-[#D9D9D2]/50 pb-3">
-              <Calendar size={18} className="text-[#244230]" />
-              <h3 className="text-xs font-extrabold text-[#1C1C1E] uppercase tracking-wider">
-                Pre-Market Check-in
-              </h3>
-            </div>
-
-            <form onSubmit={handleCheckinSubmit} className="space-y-3.5">
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">Energy & Sleep</span>
-                <div className="flex gap-1.5">
-                  {[1, 2, 3, 4, 5].map((stars) => (
-                    <button
-                      key={stars}
-                      type="button"
-                      onClick={() => setEnergy(stars)}
-                      className="transition-transform hover:scale-110 cursor-pointer"
-                    >
-                      <Star
-                        size={16}
-                        className={stars <= energy ? 'fill-[#C89B5C] text-[#C89B5C]' : 'text-[#D9D9D2]'}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">Focus State</span>
-                <select
-                  value={focus}
-                  onChange={(e) => setFocus(e.target.value as any)}
-                  className="w-full px-3 py-2 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E] appearance-none cursor-pointer"
-                >
-                  <option value="Calm">Calm & Centered</option>
-                  <option value="Anxious">Anxious / Restless</option>
-                  <option value="Distracted">Distracted / Tired</option>
-                  <option value="Overexcited">Overexcited / Eager</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">Focus Rule of Day</span>
-                <input
-                  type="text"
-                  value={targetRule}
-                  onChange={(e) => setTargetRule(e.target.value)}
-                  placeholder="e.g. Max 2 trades today"
-                  className="w-full px-3 py-2 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-[#244230] hover:bg-[#1D3526] text-white py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-              >
-                Log Check-in
-              </button>
-            </form>
-
-            {premarketCheckins.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-[#D9D9D2]/40">
-                <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">Recent Logs</span>
-                <div className="space-y-1.5 max-h-36 overflow-y-auto scrollbar-thin">
-                  {premarketCheckins.slice(0, 5).map((chk) => (
-                    <div key={chk.id} className="p-2 bg-[#FAFAF7] border border-[#D9D9D2]/40 rounded-lg text-[10px] font-bold text-[#1C1C1E]">
-                      <div className="flex justify-between items-center text-[#5C5C5E] mb-1">
-                        <span>{format(parseISO(chk.date), 'dd MMM yyyy')}</span>
-                        <span className="flex items-center gap-0.5">
-                          <Star size={8} className="fill-[#C89B5C] text-[#C89B5C]" /> {chk.energy}/5
-                        </span>
-                      </div>
-                      <div>Focus: <span className="text-[#244230]">{chk.focus}</span></div>
-                      <div className="text-[9px] font-semibold text-[#5C5C5E] italic truncate">"{chk.targetRule}"</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
 
           <div className="bg-white border border-[#D9D9D2] p-5 rounded-2xl premium-shadow space-y-4">
             <div className="flex items-center gap-2 border-b border-[#D9D9D2]/50 pb-3">
