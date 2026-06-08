@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Trade, Execution } from '../types';
 import { STRATEGIES, PRESET_TAGS, EMOTIONS, INDIAN_MARKETS, CRYPTO_MARKETS } from '../constants';
-import { Plus, Search, X, Check, Calculator, Eye, HelpCircle, Trash2, Tag } from 'lucide-react';
+import { Plus, Search, X, Check, Calculator, Eye, HelpCircle, Trash2, Tag, Zap, Smile, Frown, Angry, Meh } from 'lucide-react';
+
+const EMOTION_MAP: Record<string, { icon: React.ComponentType<any>; color: string }> = {
+  '😎': { icon: Zap, color: '#D4AF37' },
+  '😊': { icon: Smile, color: '#166534' },
+  '😟': { icon: Frown, color: '#D97706' },
+  '😡': { icon: Angry, color: '#B91C1C' },
+  '😴': { icon: Meh, color: '#6B7280' },
+  '🤔': { icon: HelpCircle, color: '#2563EB' }
+};
 
 interface LogTradeViewProps {
   onAddTrade: (trade: Trade) => void;
@@ -28,27 +37,11 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
 
   // Tags & Multiple Executions (Scale-In / Scale-Out) State
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
   const [useExecutions, setUseExecutions] = useState(false);
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [execType, setExecType] = useState<'BUY' | 'SELL'>('BUY');
   const [execPrice, setExecPrice] = useState('');
   const [execQty, setExecQty] = useState('');
-
-  // Helper to add a tag on Space, Comma, or Enter keys
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
-      e.preventDefault();
-      let val = tagInput.trim().replace(/,/g, '');
-      if (val) {
-        if (!val.startsWith('#')) val = '#' + val;
-        if (!tags.includes(val)) {
-          setTags([...tags, val]);
-        }
-      }
-      setTagInput('');
-    }
-  };
 
   const handleRemoveTag = (t: string) => {
     setTags(tags.filter(tag => tag !== t));
@@ -733,77 +726,35 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
             </select>
           </div>
 
-          {/* Tags Input */}
+          {/* Tags Selection */}
           <div className="space-y-2">
             <label className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block flex items-center gap-1">
               <Tag size={10} /> Trade Tags
             </label>
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleAddTag}
-                placeholder="Type tag (e.g. FOMO) and press space, comma, or enter"
-                className="w-full px-4 py-2.5 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
-              />
-
-              {/* Quick Add Preset Tags */}
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">
-                  Quick Add Tags
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {PRESET_TAGS.map((t) => {
-                    const isAdded = tags.includes(t);
-                    return (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => {
-                          if (isAdded) {
-                            handleRemoveTag(t);
-                          } else {
-                            setTags([...tags, t]);
-                          }
-                        }}
-                        className={`px-2.5 py-1 rounded-lg text-[9px] font-bold border transition-all cursor-pointer ${
-                          isAdded
-                            ? 'bg-[#244230] text-white border-[#244230] shadow-sm'
-                            : 'bg-[#FAFAF7] text-[#5C5C5E] border-[#D9D9D2] hover:bg-[#EAEAE2] hover:text-[#1C1C1E]'
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {tags.length > 0 && (
-                <div className="space-y-1.5 pt-1">
-                  <span className="text-[9px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">
-                    Active Tags
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {tags.map((t) => (
-                      <span
-                        key={t}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#EAEAE2] text-[#1C1C1E] uppercase tracking-wide border border-[#D9D9D2]/40"
-                      >
-                        {t}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(t)}
-                          className="text-[#5C5C5E] hover:text-[#991B1B] transition-colors cursor-pointer"
-                        >
-                          <X size={10} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {PRESET_TAGS.map((t) => {
+                const isAdded = tags.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      if (isAdded) {
+                        handleRemoveTag(t);
+                      } else {
+                        setTags([...tags, t]);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                      isAdded
+                        ? 'bg-[#244230] text-white border-[#244230] shadow-sm'
+                        : 'bg-[#FAFAF7] text-[#5C5C5E] border-[#D9D9D2] hover:bg-[#EAEAE2] hover:text-[#1C1C1E]'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -813,25 +764,36 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
               Trading Emotion
             </label>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-              {EMOTIONS.map((em) => (
-                <button
-                  key={em.label}
-                  type="button"
-                  onClick={() => setEmotion(em.emoji)}
-                  className={`flex flex-col items-center p-2.5 border rounded-xl transition-all ${
-                    emotion === em.emoji
-                      ? 'border-[#244230] bg-[#EAEAE2] scale-105'
-                      : 'border-[#D9D9D2] bg-white hover:bg-[#FAFAF7]'
-                  }`}
-                >
-                  <span className="text-sm mb-1.5">{em.emoji}</span>
-                  <span className={`text-[10px] font-extrabold uppercase tracking-wider transition-colors duration-150 ${
-                    emotion === em.emoji ? 'text-[#1C1C1E]' : 'text-[#5C5C5E]'
-                  }`}>
-                    {em.label}
-                  </span>
-                </button>
-              ))}
+              {EMOTIONS.map((em) => {
+                const isSelected = emotion === em.emoji;
+                const mapping = EMOTION_MAP[em.emoji];
+                const IconComponent = mapping ? mapping.icon : HelpCircle;
+                const iconColor = mapping ? mapping.color : '#5C5C5E';
+                
+                return (
+                  <button
+                    key={em.label}
+                    type="button"
+                    onClick={() => setEmotion(em.emoji)}
+                    className={`flex flex-col items-center p-2.5 border rounded-xl transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-[#244230] bg-[#EAEAE2] scale-105 shadow-sm'
+                        : 'border-[#D9D9D2] bg-white hover:bg-[#FAFAF7]'
+                    }`}
+                  >
+                    <IconComponent 
+                      size={20} 
+                      className={`mb-1.5 transition-transform ${isSelected ? 'scale-110' : ''}`}
+                      style={{ color: iconColor }} 
+                    />
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider transition-colors duration-150 ${
+                      isSelected ? 'text-[#1C1C1E]' : 'text-[#5C5C5E]'
+                    }`}>
+                      {em.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
