@@ -2,6 +2,18 @@ import type { Trade, EmotionOption } from './types';
 
 export const STRATEGIES: string[] = [];
 
+export const PRESET_TAGS = [
+  '#FollowedRules',
+  '#FOMO',
+  '#RevengeTrade',
+  '#PatientEntry',
+  '#LeftTooEarly',
+  '#ChasingPrice',
+  '#Overtrading',
+  '#NoStopLoss',
+  '#GoodRisk'
+];
+
 export const EMOTIONS: EmotionOption[] = [
   { emoji: '😎', label: 'Confident' },
   { emoji: '😊', label: 'Calm' },
