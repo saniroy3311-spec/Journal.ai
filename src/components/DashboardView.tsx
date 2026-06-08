@@ -359,8 +359,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wider">
               Avg Loss
             </span>
-            <span className="text-lg font-extrabold font-display text-[#991B1B]">
-              -₹{Math.round(stats.avgLoss).toLocaleString('en-IN')}
+            <span className={`text-lg font-extrabold font-display ${stats.avgLoss === 0 ? 'text-[#1C1C1E]' : 'text-[#991B1B]'}`}>
+              {stats.avgLoss === 0 ? '₹0' : `-₹${Math.round(stats.avgLoss).toLocaleString('en-IN')}`}
             </span>
             <span className="text-[10px] font-semibold text-[#5C5C5E]">Mean of losing trades</span>
           </div>
