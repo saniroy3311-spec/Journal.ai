@@ -49,6 +49,16 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<Date | null>(new Date(2026, 4, 20)); // Pre-select a day
   const [activeSection, setActiveSection] = useState<string>('overview');
 
+  // Dynamically focus calendar month and select latest trade on load
+  useEffect(() => {
+    if (trades.length > 0) {
+      const sorted = [...trades].sort((a, b) => b.date.localeCompare(a.date));
+      const latestDate = new Date(sorted[0].date);
+      setCalendarMonth(latestDate);
+      setSelectedCalendarDay(latestDate);
+    }
+  }, [trades]);
+
   const closedTrades = trades.filter(t => t.status === 'CLOSED');
 
   const sections = [
@@ -237,9 +247,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
   
   const monthDays = eachDayOfInterval({ start: startMonth, end: endMonth });
 
-  // Get trades for a specific calendar day
+  // Get trades for a specific calendar day (timezone-agnostic string matching)
   const getDayTrades = (day: Date) => {
-    return trades.filter(t => isSameDay(parseISO(t.date), day));
+    const dayStr = format(day, 'yyyy-MM-dd');
+    return trades.filter(t => t.date.split('T')[0] === dayStr);
   };
 
   // Get P&L for a specific calendar day
