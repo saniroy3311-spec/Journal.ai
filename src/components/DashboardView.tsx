@@ -262,7 +262,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Profit Factor
             </span>
             <span className="text-lg font-extrabold font-display text-[#1C1C1E]">
-              {stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)}
+              {stats.profitFactor === Infinity ? '—' : stats.profitFactor.toFixed(2)}
             </span>
             <span className="text-[10px] font-semibold text-[#5C5C5E]">Gross Wins / Gross Losses</span>
           </div>
@@ -273,7 +273,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Avg R:R Ratio
             </span>
             <span className="text-lg font-extrabold font-display text-[#1C1C1E]">
-              {stats.rrRatio === Infinity ? '∞' : `${stats.rrRatio.toFixed(2)}x`}
+              {stats.rrRatio === Infinity ? '—' : `${stats.rrRatio.toFixed(2)}x`}
             </span>
             <span className="text-[10px] font-semibold text-[#5C5C5E]">Avg Win / Avg Loss</span>
           </div>
