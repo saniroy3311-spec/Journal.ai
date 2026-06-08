@@ -1,11 +1,12 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { open } from 'sqlite';
-import sqlite3 from 'sqlite3';
+import { createClient } from '@libsql/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +19,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 let db;
+let isCloud = false;
 
 async function seedUserTrades(userId) {
   const initialTrades = [
@@ -164,30 +166,70 @@ async function seedUserTrades(userId) {
   ];
 
   for (const t of initialTrades) {
-    await db.run(
-      `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status, t.recurring || 'NONE', null, 'NONE', userId]
-    );
+    await db.execute({
+      sql: `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status, t.recurring || 'NONE', null, 'NONE', userId]
+    });
   }
 
   await seedUserConfig(userId);
 }
 
 async function seedUserConfig(userId) {
-  // Seed default configurations
-  await db.run('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)', [`${userId}_starting_capital`, '1254300']);
-  await db.run('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)', [`${userId}_dharma_custom_instructions`, '']);
+  await db.execute({
+    sql: 'INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)',
+    args: [`${userId}_starting_capital`, '1254300']
+  });
+  await db.execute({
+    sql: 'INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)',
+    args: [`${userId}_dharma_custom_instructions`, '']
+  });
+}
+
+async function seedDefaultUser() {
+  console.log('Seeding default user "demo" (password: "demo")...');
+  const demoUserId = 'demo_user_id';
+  const hashedPassword = await bcrypt.hash('demo', 10);
+  await db.execute({
+    sql: 'INSERT OR IGNORE INTO users (id, username, password) VALUES (?, ?, ?)',
+    args: [demoUserId, 'demo', hashedPassword]
+  });
+  await seedUserTrades(demoUserId);
 }
 
 async function initDb() {
-  db = await open({
-    filename: path.join(__dirname, 'database.sqlite'),
-    driver: sqlite3.Database
-  });
+  const tursoUrl = process.env.TURSO_DATABASE_URL;
+  const tursoToken = process.env.TURSO_AUTH_TOKEN;
+
+  if (tursoUrl) {
+    try {
+      console.log('Attempting to connect to remote Turso database:', tursoUrl);
+      const remoteDb = createClient({
+        url: tursoUrl,
+        authToken: tursoToken
+      });
+
+      // Verify connection
+      await remoteDb.execute('SELECT 1');
+      console.log('Successfully connected to remote Turso database!');
+      db = remoteDb;
+      isCloud = true;
+    } catch (err) {
+      console.error('Failed to connect to remote Turso database, falling back to local SQLite:', err);
+    }
+  }
+
+  if (!db) {
+    console.log('Using local SQLite database...');
+    db = createClient({
+      url: 'file:database.sqlite'
+    });
+    isCloud = false;
+  }
 
   // Create tables if they do not exist
-  await db.exec(`
+  await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
@@ -227,31 +269,73 @@ async function initDb() {
 
   // Migrate schema for existing databases (adds columns if missing)
   try {
-    await db.exec(`ALTER TABLE trades ADD COLUMN strikePrice REAL;`);
+    await db.execute(`ALTER TABLE trades ADD COLUMN strikePrice REAL;`);
   } catch (e) { /* Ignore */ }
   try {
-    await db.exec(`ALTER TABLE trades ADD COLUMN optionType TEXT;`);
+    await db.execute(`ALTER TABLE trades ADD COLUMN optionType TEXT;`);
   } catch (e) { /* Ignore */ }
   try {
-    await db.exec(`ALTER TABLE trades ADD COLUMN userId TEXT;`);
+    await db.execute(`ALTER TABLE trades ADD COLUMN userId TEXT;`);
   } catch (e) { /* Ignore */ }
 
   // Migrate any old trades with missing userId to the default demo user
   try {
-    await db.run(`UPDATE trades SET userId = 'demo_user_id' WHERE userId IS NULL`);
+    await db.execute(`UPDATE trades SET userId = 'demo_user_id' WHERE userId IS NULL`);
   } catch (e) { /* Ignore */ }
 
-  // Create a default user if users is empty
-  const userCount = await db.get('SELECT COUNT(*) as count FROM users');
-  if (userCount.count === 0) {
-    console.log('Seeding default user "demo" (password: "demo")...');
-    const demoUserId = 'demo_user_id';
-    const hashedPassword = await bcrypt.hash('demo', 10);
-    await db.run(
-      'INSERT OR IGNORE INTO users (id, username, password) VALUES (?, ?, ?)',
-      [demoUserId, 'demo', hashedPassword]
-    );
-    await seedUserTrades(demoUserId);
+  // Check user count to determine if database is empty
+  const userCountRes = await db.execute('SELECT COUNT(*) as count FROM users');
+  const userCount = userCountRes.rows[0].count;
+
+  if (userCount === 0) {
+    let migrated = false;
+
+    if (isCloud) {
+      const localDbPath = path.join(__dirname, 'database.sqlite');
+      if (fs.existsSync(localDbPath)) {
+        console.log('Remote database is empty. Local sqlite file found. Checking for migration data...');
+        try {
+          const localDb = createClient({
+            url: `file:${localDbPath}`
+          });
+          const tableCheck = await localDb.execute("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('users', 'trades', 'config')");
+          const existingTables = tableCheck.rows.map(r => r.name);
+
+          if (existingTables.includes('users')) {
+            const userRes = await localDb.execute('SELECT * FROM users');
+            if (userRes.rows.length > 0) {
+              const tradeRes = existingTables.includes('trades') ? await localDb.execute('SELECT * FROM trades') : { rows: [] };
+              const configRes = existingTables.includes('config') ? await localDb.execute('SELECT * FROM config') : { rows: [] };
+
+              console.log(`Migrating data from local file: ${userRes.rows.length} users, ${tradeRes.rows.length} trades, ${configRes.rows.length} config entries...`);
+
+              for (const u of userRes.rows) {
+                await db.execute('INSERT OR IGNORE INTO users (id, username, password) VALUES (?, ?, ?)', [u.id, u.username, u.password]);
+              }
+              for (const t of tradeRes.rows) {
+                await db.execute(
+                  `INSERT OR IGNORE INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                  [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', t.userId]
+                );
+              }
+              for (const cfg of configRes.rows) {
+                await db.execute('INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)', [cfg.key, cfg.value]);
+              }
+
+              console.log('Successfully completed automatic cloud database migration!');
+              migrated = true;
+            }
+          }
+        } catch (migrationErr) {
+          console.error('Migration failed. Will fall back to seeding default user:', migrationErr);
+        }
+      }
+    }
+
+    if (!migrated) {
+      await seedDefaultUser();
+    }
   }
 }
 
@@ -282,7 +366,11 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    const existing = await db.get('SELECT id FROM users WHERE username = ?', [cleanUsername]);
+    const resExist = await db.execute({
+      sql: 'SELECT id FROM users WHERE username = ?',
+      args: [cleanUsername]
+    });
+    const existing = resExist.rows[0];
     if (existing) {
       return res.status(400).json({ error: 'Username already exists' });
     }
@@ -290,10 +378,10 @@ app.post('/api/auth/register', async (req, res) => {
     const userId = 'u_' + Math.random().toString(36).substring(2, 11);
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await db.run(
-      'INSERT INTO users (id, username, password) VALUES (?, ?, ?)',
-      [userId, cleanUsername, hashedPassword]
-    );
+    await db.execute({
+      sql: 'INSERT INTO users (id, username, password) VALUES (?, ?, ?)',
+      args: [userId, cleanUsername, hashedPassword]
+    });
 
     // Seed only configurations (no trade logs) for new users
     await seedUserConfig(userId);
@@ -314,7 +402,11 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    const user = await db.get('SELECT * FROM users WHERE username = ?', [cleanUsername]);
+    const resUser = await db.execute({
+      sql: 'SELECT * FROM users WHERE username = ?',
+      args: [cleanUsername]
+    });
+    const user = resUser.rows[0];
     if (!user) {
       return res.status(400).json({ error: 'Invalid username or password' });
     }
@@ -335,8 +427,11 @@ app.post('/api/auth/login', async (req, res) => {
 // Protected API Endpoints
 app.get('/api/trades', authenticateToken, async (req, res) => {
   try {
-    const trades = await db.all('SELECT * FROM trades WHERE userId = ? ORDER BY date DESC', [req.user.id]);
-    res.json(trades);
+    const resTrades = await db.execute({
+      sql: 'SELECT * FROM trades WHERE userId = ? ORDER BY date DESC',
+      args: [req.user.id]
+    });
+    res.json(resTrades.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch trades' });
@@ -346,19 +441,23 @@ app.get('/api/trades', authenticateToken, async (req, res) => {
 app.post('/api/trades', authenticateToken, async (req, res) => {
   try {
     const t = req.body;
-    const existing = await db.get('SELECT id FROM trades WHERE id = ? AND userId = ?', [t.id, req.user.id]);
+    const resExist = await db.execute({
+      sql: 'SELECT id FROM trades WHERE id = ? AND userId = ?',
+      args: [t.id, req.user.id]
+    });
+    const existing = resExist.rows[0];
     
     if (existing) {
-      await db.run(
-        `UPDATE trades SET symbol=?, type=?, market=?, entryPrice=?, exitPrice=?, quantity=?, date=?, strategy=?, setupName=?, emotion=?, screenshot=?, sl=?, tp=?, pnl=?, pnlPercentage=?, notes=?, status=?, recurring=?, strikePrice=?, optionType=? WHERE id=? AND userId=?`,
-        [t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', t.id, req.user.id]
-      );
+      await db.execute({
+        sql: `UPDATE trades SET symbol=?, type=?, market=?, entryPrice=?, exitPrice=?, quantity=?, date=?, strategy=?, setupName=?, emotion=?, screenshot=?, sl=?, tp=?, pnl=?, pnlPercentage=?, notes=?, status=?, recurring=?, strikePrice=?, optionType=? WHERE id=? AND userId=?`,
+        args: [t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', t.id, req.user.id]
+      });
     } else {
-      await db.run(
-        `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', req.user.id]
-      );
+      await db.execute({
+        sql: `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', req.user.id]
+      });
     }
     res.json({ success: true });
   } catch (err) {
@@ -370,7 +469,10 @@ app.post('/api/trades', authenticateToken, async (req, res) => {
 app.delete('/api/trades/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    await db.run('DELETE FROM trades WHERE id = ? AND userId = ?', [id, req.user.id]);
+    await db.execute({
+      sql: 'DELETE FROM trades WHERE id = ? AND userId = ?',
+      args: [id, req.user.id]
+    });
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -380,7 +482,11 @@ app.delete('/api/trades/:id', authenticateToken, async (req, res) => {
 
 app.get('/api/coach-instructions', authenticateToken, async (req, res) => {
   try {
-    const row = await db.get('SELECT value FROM config WHERE key = ?', [`${req.user.id}_dharma_custom_instructions`]);
+    const resRow = await db.execute({
+      sql: 'SELECT value FROM config WHERE key = ?',
+      args: [`${req.user.id}_dharma_custom_instructions`]
+    });
+    const row = resRow.rows[0];
     res.json({ value: row ? row.value : '' });
   } catch (err) {
     console.error(err);
@@ -391,10 +497,10 @@ app.get('/api/coach-instructions', authenticateToken, async (req, res) => {
 app.post('/api/coach-instructions', authenticateToken, async (req, res) => {
   try {
     const { value } = req.body;
-    await db.run(
-      'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
-      [`${req.user.id}_dharma_custom_instructions`, value]
-    );
+    await db.execute({
+      sql: 'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
+      args: [`${req.user.id}_dharma_custom_instructions`, value]
+    });
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -404,7 +510,11 @@ app.post('/api/coach-instructions', authenticateToken, async (req, res) => {
 
 app.get('/api/custom-strategies', authenticateToken, async (req, res) => {
   try {
-    const row = await db.get('SELECT value FROM config WHERE key = ?', [`${req.user.id}_dharma_custom_strategies`]);
+    const resRow = await db.execute({
+      sql: 'SELECT value FROM config WHERE key = ?',
+      args: [`${req.user.id}_dharma_custom_strategies`]
+    });
+    const row = resRow.rows[0];
     if (row) {
       res.json(JSON.parse(row.value));
     } else {
@@ -428,10 +538,10 @@ app.get('/api/custom-strategies', authenticateToken, async (req, res) => {
 app.post('/api/custom-strategies', authenticateToken, async (req, res) => {
   try {
     const { strategies } = req.body;
-    await db.run(
-      'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
-      [`${req.user.id}_dharma_custom_strategies`, JSON.stringify(strategies)]
-    );
+    await db.execute({
+      sql: 'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
+      args: [`${req.user.id}_dharma_custom_strategies`, JSON.stringify(strategies)]
+    });
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -441,7 +551,11 @@ app.post('/api/custom-strategies', authenticateToken, async (req, res) => {
 
 app.get('/api/starting-capital', authenticateToken, async (req, res) => {
   try {
-    const row = await db.get('SELECT value FROM config WHERE key = ?', [`${req.user.id}_starting_capital`]);
+    const resRow = await db.execute({
+      sql: 'SELECT value FROM config WHERE key = ?',
+      args: [`${req.user.id}_starting_capital`]
+    });
+    const row = resRow.rows[0];
     res.json({ value: row ? parseFloat(row.value) : 1254300 });
   } catch (err) {
     console.error(err);
@@ -452,10 +566,10 @@ app.get('/api/starting-capital', authenticateToken, async (req, res) => {
 app.post('/api/starting-capital', authenticateToken, async (req, res) => {
   try {
     const { value } = req.body;
-    await db.run(
-      'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
-      [`${req.user.id}_starting_capital`, String(value)]
-    );
+    await db.execute({
+      sql: 'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
+      args: [`${req.user.id}_starting_capital`, String(value)]
+    });
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -465,8 +579,14 @@ app.post('/api/starting-capital', authenticateToken, async (req, res) => {
 
 app.post('/api/reset', authenticateToken, async (req, res) => {
   try {
-    await db.run('DELETE FROM trades WHERE userId = ?', [req.user.id]);
-    await db.run('DELETE FROM config WHERE key LIKE ? OR key LIKE ?', [`${req.user.id}_%`, `${req.user.id}_%`]);
+    await db.execute({
+      sql: 'DELETE FROM trades WHERE userId = ?',
+      args: [req.user.id]
+    });
+    await db.execute({
+      sql: 'DELETE FROM config WHERE key LIKE ? OR key LIKE ?',
+      args: [`${req.user.id}_%`, `${req.user.id}_%`]
+    });
     if (req.user.id === 'demo_user_id') {
       await seedUserTrades(req.user.id);
     } else {
