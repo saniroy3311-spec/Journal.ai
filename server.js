@@ -327,7 +327,7 @@ async function initDb() {
                 await db.execute(
                   `INSERT OR IGNORE INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId) 
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                  [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', t.userId]
+                  [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName || null, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', t.userId]
                 );
               }
               for (const cfg of configRes.rows) {
@@ -464,13 +464,13 @@ app.post('/api/trades', authenticateToken, async (req, res) => {
     if (existing) {
       await db.execute({
         sql: `UPDATE trades SET symbol=?, type=?, market=?, entryPrice=?, exitPrice=?, quantity=?, date=?, strategy=?, setupName=?, emotion=?, screenshot=?, sl=?, tp=?, pnl=?, pnlPercentage=?, notes=?, status=?, recurring=?, strikePrice=?, optionType=?, tags=?, executions=? WHERE id=? AND userId=?`,
-        args: [t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', tagsStr, execsStr, t.id, req.user.id]
+        args: [t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName || null, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', tagsStr, execsStr, t.id, req.user.id]
       });
     } else {
       await db.execute({
         sql: `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId, tags, executions) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', req.user.id, tagsStr, execsStr]
+        args: [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName || null, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', req.user.id, tagsStr, execsStr]
       });
     }
     res.json({ success: true });
@@ -513,7 +513,7 @@ app.post('/api/coach-instructions', authenticateToken, async (req, res) => {
     const { value } = req.body;
     await db.execute({
       sql: 'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
-      args: [`${req.user.id}_dharma_custom_instructions`, value]
+      args: [`${req.user.id}_dharma_custom_instructions`, value !== undefined ? value : '']
     });
     res.json({ success: true });
   } catch (err) {
@@ -574,7 +574,7 @@ app.post('/api/custom-strategies', authenticateToken, async (req, res) => {
     const { strategies } = req.body;
     await db.execute({
       sql: 'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
-      args: [`${req.user.id}_dharma_custom_strategies`, JSON.stringify(strategies)]
+      args: [`${req.user.id}_dharma_custom_strategies`, JSON.stringify(strategies || [])]
     });
     res.json({ success: true });
   } catch (err) {
@@ -602,7 +602,7 @@ app.post('/api/starting-capital', authenticateToken, async (req, res) => {
     const { value } = req.body;
     await db.execute({
       sql: 'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
-      args: [`${req.user.id}_starting_capital`, String(value)]
+      args: [`${req.user.id}_starting_capital`, String(value !== undefined ? value : '0')]
     });
     res.json({ success: true });
   } catch (err) {
