@@ -1,178 +1,252 @@
-# Journal.ai — VPS Deployment and Usage Guide
+# Journal.ai — App Overview & New User Guide
 
-Welcome to **Journal.ai**, your premium trading journal for Indian (NSE/BSE) and Crypto markets. This guide explains how the app works, how to run it locally, and how to deploy and manage it on your **Hostinger VPS** using a server-side SQLite database (no local storage limits!).
-
----
-
-## Table of Contents
-1. [Running Locally](#1-running-locally)
-2. [Data Storage (Express + SQLite)](#2-data-storage-express--sqlite)
-3. [Hostinger VPS Deployment Guide](#3-hostinger-vps-deployment-guide)
-4. [Daily Real-Life Trading Workflow](#4-daily-real-life-trading-workflow)
+Welcome to **Journal.ai**, your premium trading journal for Indian (NSE/BSE) and Crypto markets. This guide walks you through every screen of the app with screenshots and simple instructions.
 
 ---
 
-## 1. Running Locally
+## App Overview
 
-To run the full application (frontend + database backend) on your local machine:
+Journal.ai is a **cloud-synced trading journal** that helps you:
+- **Log every trade** with entry/exit prices, emotions, strategies, and chart screenshots
+- **Track your P&L** with an interactive equity curve and performance stats
+- **Analyze your patterns** through calendar heatmaps, strategy breakdowns, and psychology metrics
+- **Get AI-powered coaching** that audits your behavioral leaks and helps you build discipline
+
+Your data is stored securely on a server — access it from any device, anytime.
+
+---
+
+## 1. Dashboard
+
+The **Dashboard** is your home screen. It gives you a quick snapshot of your trading performance at a glance.
+
+![Dashboard — Your trading performance at a glance](docs/images/dashboard.png)
+
+### What you see here:
+| Element | What it shows |
+| :--- | :--- |
+| **Equity Curve** | A line chart of your cumulative P&L over time |
+| **Total P&L** | Your net profit or loss across all closed trades |
+| **Win Rate** | Percentage of your trades that ended in profit |
+| **Total Trades** | How many trades you have logged and closed |
+| **Starting Capital** | Click this in the header to set your base capital amount |
+| **Recent Trades** | Quick list of your latest closed trades with P&L badges |
+
+### How to use:
+1. Open the app — you land on the Dashboard automatically.
+2. Click **"Start Capital"** in the top-right header to set your base capital.
+3. The equity curve and stats update automatically as you log and close trades.
+
+---
+
+## 2. Log Trade
+
+The **Log Trade** tab is where you record every trade you take during the session.
+
+![Log Trade — Record your trades with full details](docs/images/log_trade.png)
+
+### How to log a trade (step by step):
+
+1. **Select Market** — Choose between Equity, Index, or Crypto.
+2. **Set Direction** — Click **BUY** (green) or **SELL** (red).
+3. **Enter Symbol** — Type the stock/index name (e.g., `RELIANCE`, `NIFTY`, `BTC`).
+4. **Fill Prices** —
+   - **Entry Price**: The price you entered the trade.
+   - **Exit Price**: The price you closed the trade (leave blank if still open).
+   - **Stop Loss (SL)**: Your risk level.
+   - **Take Profit (TP)**: Your target level.
+5. **Set Quantity** — How many shares/lots/units.
+6. **Choose Strategy** — Pick from your saved strategy setups, or create a new one by selecting "Add New Strategy".
+7. **Select Emotion** — Pick the icon that matches your mental state *before* you clicked Buy/Sell:
+   - 😊 Calm & Happy
+   - 😎 Overconfident
+   - 😟 Anxious / Fearful
+   - 😡 Revenge / Anger
+   - 😴 Bored
+   - 🤔 Indecisive
+8. **Tag Your Trade** — Click the tag pills that apply:
+   - `#FollowedRules` — You stuck to your plan
+   - `#FOMO` — You chased the price
+   - `#RevengeTrade` — You entered out of anger
+   - `#NoStopLoss` — You didn't set a stop loss
+   - `#PatientEntry` — You waited for confirmation
+   - `#Overtrading` — Too many trades today
+   - And more...
+9. **Add a Screenshot** — Paste a chart screenshot URL to attach a visual record of the trade.
+10. **Write Notes** — Add any observations or trade reasoning.
+11. Click **"Save Trade"** — Done! Your trade is saved to the cloud database.
+
+> **💡 Tip:** Log your emotion honestly at the time of the trade, not after the result. This is the most important data for your AI Coach to detect your psychological leaks.
+
+---
+
+## 3. History
+
+The **History** tab shows all your logged trades in a scrollable list.
+
+![History — Browse and manage all your logged trades](docs/images/history.png)
+
+### What you see here:
+- **Trade Cards** — Each card shows the symbol, direction (BUY/SELL), date, entry/exit prices, P&L (green for profit, red for loss), strategy, emotion, and tags.
+- **Search Bar** — Filter trades by symbol name.
+- **Import CSV** — Bulk-import trades from your broker's CSV export file.
+
+### How to use:
+1. Scroll through your trade cards to review past trades.
+2. Click on any trade card to expand it and see full details (notes, screenshot, executions).
+3. Use **"Import CSV"** to upload trades from your broker if you have a lot of historical data.
+4. You can **edit** or **delete** any trade from the expanded card view.
+
+---
+
+## 4. Analytics
+
+The **Analytics** tab is your data laboratory. It breaks down your performance into five detailed sections.
+
+![Analytics — Deep dive into your trading patterns](docs/images/analytics.png)
+
+### The five analytics sections:
+
+| Section | What it shows |
+| :--- | :--- |
+| **Overview** | Monthly P&L bar chart, Win/Loss pie chart, Position Size vs P&L scatter plot |
+| **Strategy Breakdowns** | Win rate, net P&L, and trade count for each strategy setup you use |
+| **Trading Calendar** | A calendar heatmap showing green (profit) and red (loss) days — spot streaks instantly |
+| **Psychology & Emotions** | Which emotions are costing you money? See P&L grouped by your logged emotional state |
+| **Tag Analysis** | Which habits help and which hurt? See net P&L and win rate per tag |
+
+### How to use:
+1. Click the **sticky navigation tabs** at the top (Overview, Strategy, Calendar, etc.) to jump to any section.
+2. Use the **Timeframe Filter** dropdown (top-right) to filter data by month or view all-time stats.
+3. In the **Trading Calendar**, click on any day to see the trades you took that day.
+4. Scroll down through all sections for a complete picture of your trading behavior.
+
+> **⚠️ Important:** You need to **close at least one trade** (fill in the Exit Price) for the analytics charts to display data.
+
+---
+
+## 5. AI Coach
+
+The **AI Coach** is your personal trading psychologist. It audits your behavioral patterns and gives you data-driven feedback.
+
+![AI Coach — Your personal performance coach powered by your data](docs/images/ai_coach.png)
+
+### The three key modules:
+
+#### A. Coaching Focus (Left Panel)
+- Write your **custom trading instructions** here (e.g., *"No trading after 2:30 PM"*, *"Max 2 trades per day"*).
+- These instructions are saved automatically and remind you of your personal rules.
+
+#### B. Performance Audit (Right Panel)
+- Click **"Generate Audit Report"** to run an instant analysis of your trade logs.
+- The coach evaluates four areas:
+  - **Mindset Audit** — Finds your worst emotional state and how much money it cost you.
+  - **Timing Audit** — Identifies your worst-performing weekday.
+  - **Strategy Audit** — Highlights your most unprofitable strategy setup.
+  - **Risk & Sizing Audit** — Checks if your average loss is bigger than your average win.
+- You get a **Discipline Score (0–100)** based on your rules compliance.
+
+#### C. AI Coach Chat (Bottom)
+- Chat with your AI Coach in natural language!
+- Use the **quick action pills** to ask:
+  - *"Worst Emotion?"* — Which feeling is costing you the most money?
+  - *"Worst Weekday?"* — Which day should you reduce your trading size?
+  - *"Worst Setup?"* — Which strategy should you pause or refine?
+  - *"Discipline Score?"* — How well are you following your own rules?
+- Or type any question about your trading habits.
+
+> **💡 Tip:** The AI Coach uses **your actual trade data** to answer questions. The more trades you log with honest emotions and tags, the smarter and more useful the coach becomes.
+
+---
+
+## Adding a Chart Screenshot to Your Trade
+
+One of the most powerful features of Journal.ai is attaching a **chart screenshot** to every trade. Here's how:
+
+### Step-by-step:
+1. Take a screenshot of your chart on your trading platform (e.g., TradingView, Zerodha Kite).
+2. Upload the screenshot image to any free image hosting service (e.g., **Imgur**, **Postimages**).
+3. Copy the **direct image URL** (the one ending in `.png` or `.jpg`).
+4. In the **Log Trade** form, paste the URL into the **"Chart Screenshot URL"** field.
+5. Save the trade — the screenshot is now linked to your trade record forever!
+
+### Why screenshots matter:
+- During your post-market review, you can see *exactly* what the chart looked like when you entered.
+- The AI Coach can correlate your chart setups with your emotional patterns.
+- Over time, screenshots build a visual library of your best and worst trades for learning.
+
+---
+
+## Quick Start Checklist for New Users
+
+Here's a simple checklist to get started with Journal.ai:
+
+- [ ] **Set your Starting Capital** — Click the capital amount in the top-right header.
+- [ ] **Create your first Strategy** — Go to Log Trade → Strategy dropdown → "Add New Strategy".
+- [ ] **Log your first trade** — Fill in all the fields, pick an emotion, select tags, and click Save.
+- [ ] **Close the trade** — Once your trade is done, update the Exit Price to close it.
+- [ ] **Check the Dashboard** — Watch your equity curve update with your first trade.
+- [ ] **Run an Audit** — Go to AI Coach → Click "Generate Audit Report" to see your discipline score.
+- [ ] **Ask the Coach** — Try clicking "Worst Emotion?" in the AI Chat to get your first coaching insight.
+
+---
+
+## Daily Trading Workflow
+
+For best results, follow this routine every day:
+
+```
+Morning   →  Set your focus rule in the AI Coach
+              ↓
+During Market  →  Log each trade immediately after taking it
+              ↓
+After Market   →  Review your trades in History
+              ↓
+Evening   →  Check Analytics & run an AI Coach Audit
+              ↓
+Repeat    →  Build consistency over weeks and months
+```
+
+> **📝 Note:** Consistency is the key. Log every single trade — even the bad ones. The AI Coach can only help you if it has honest, complete data. The traders who improve the fastest are the ones who journal every day, without exception.
+
+---
+
+## Running Locally
 
 ### Prerequisites
 Make sure you have **Node.js** (v18 or newer) installed.
 
-### Steps to Run
-1. Open your terminal in the project directory.
-2. Install the dependencies:
-   ```bash
-   npm install
-   ```
-3. Compile the frontend assets:
-   ```bash
-   npm run build
-   ```
-4. Start the Express backend server:
-   ```bash
-   npm start
-   ```
-5. Open your web browser and navigate to **`http://localhost:3000/`**.
-
-*Note: For frontend development with hot reloading, you can run `npm run dev` in one terminal window, and run `node server.js` in another. Requests to `/api` are automatically proxied from port 5173 to port 3000.*
-
----
-
-## 2. Data Storage (Express + SQLite)
-
-Instead of using browser local storage, Journal.ai stores your trades and configuration settings in a robust, server-side **SQLite database**.
-
-### Key Advantages
-- **Server Persistence**: Your trades are safe on your Hostinger VPS, even if you clear your browser cookies, history, or change devices.
-- **Cross-Device Syncing**: You can access your journal from your computer, laptop, or mobile browser and see the exact same logs in real-time.
-- **No Storage Limits**: Browsers limit local storage to 5MB, which restricts screenshots. SQLite runs on your VPS disk, letting you store thousands of trades and images.
-- **Single Database File**: The entire database is stored in a single file named `database.sqlite` at the root of the project, making backups as simple as copying the file.
-
----
-
-## 3. Hostinger VPS Deployment Guide
-
-Here is the step-by-step instruction to host the application on your **Hostinger VPS** using **PM2** (Process Manager) and Nginx.
-
-### Step 1: Connect to your VPS
-SSH into your Hostinger VPS using your terminal:
+### Steps
 ```bash
-ssh root@<your-vps-ip>
-```
-
-### Step 2: Install Node.js & Git (If not already installed)
-Ensure Node.js (v18+) and Git are installed on your VPS:
-```bash
-# Update packages
-sudo apt update
-
-# Install Node.js via NodeSource
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs git
-```
-
-### Step 3: Clone & Install the Project
-Clone your repository onto the VPS:
-```bash
-# Clone the repository
-git clone <your-git-repo-url> /var/www/trading-journal
-cd /var/www/trading-journal
-
-# Install package dependencies
+# Install dependencies
 npm install
-```
 
-### Step 4: Build & Test Run
-Compile the frontend assets and run the server to test:
-```bash
-# Build React static assets
+# Build the frontend
 npm run build
 
-# Test run the server
-node server.js
+# Start the server
+npm start
 ```
-*You should see the output: "Server is running on port 3000". Press `Ctrl + C` to stop the server.*
 
-### Step 5: Configure PM2 (Process Manager)
-To keep the application running 24/7 in the background (even after you close your SSH session), use PM2:
-```bash
-# Install PM2 globally
-sudo npm install -g pm2
+Open your browser and go to **http://localhost:3000/**
 
-# Start the server under PM2
-pm2 start server.js --name "trading-journal"
-
-# Save the PM2 process list and configure it to start on VPS boot
-pm2 save
-pm2 startup
-```
-*Run the command outputted by `pm2 startup` to enable boot persistence.*
-
-### Step 6: Expose the App (Nginx Reverse Proxy)
-Since the app runs on port `3000` inside the VPS, you should route standard HTTP (`80`) or HTTPS (`443`) traffic to it using Nginx:
-
-1. Install Nginx:
-   ```bash
-   sudo apt install -y nginx
-   ```
-2. Create Nginx server configuration:
-   ```bash
-   sudo nano /etc/nginx/sites-available/trading-journal
-   ```
-3. Paste the following configuration (replace `yourdomain.com` with your VPS IP or custom domain):
-   ```nginx
-   server {
-       listen 80;
-       server_name yourdomain.com www.yourdomain.com;
-
-       location / {
-           proxy_pass http://localhost:3000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-4. Enable the configuration and restart Nginx:
-   ```bash
-   sudo ln -s /etc/nginx/sites-available/trading-journal /etc/nginx/sites-enabled/
-   sudo rm /etc/nginx/sites-enabled/default
-   sudo nginx -t
-   sudo systemctl restart nginx
-   ```
-
-Now, visit your domain or VPS IP in the browser and your premium trading journal is live!
+*For development with hot reloading, run `npm run dev` in one terminal and `node server.js` in another.*
 
 ---
 
-## 4. Daily Real-Life Trading Workflow
+## VPS Deployment (Hostinger)
 
-To get the maximum value out of **Journal.ai**, integrate it directly into your daily routine:
+```bash
+# SSH into your VPS
+ssh root@<your-vps-ip>
 
-```mermaid
-graph TD
-    A[1. Pre-Market Focus] --> B[2. Log Closed Position]
-    B --> C[3. Post-Market Analytics Review]
-    C --> D[4. Coach Panel Alignment]
-    D --> A
+# Navigate to the project
+cd /var/www/Journal.ai
+
+# Pull latest changes, install, build, and restart
+git pull origin main && npm install && npm run build && pm2 restart Journal.ai --update-env
 ```
 
-### Phase A: Pre-Market Focus (Before Market Open)
-- Look at the **Journal.ai Coach** focus input on the Dashboard.
-- Write your primary discipline focus for the session (e.g., *"I will not move my stop losses down today; I will let the trade play out"*).
-- Your focus automatically autosaves to the SQLite database.
+---
 
-### Phase B: Execution (During the Session)
-- Take a trade on your broker terminal.
-- Go to the **Log Trade** tab:
-  - Set the market (Equity, Index, or Crypto) and direction (BUY/SELL).
-  - Enter the **Entry Price**, **Exit Price**, **Stop Loss (SL)**, and **Take Profit (TP)**.
-  - Select the emoji that matches your actual emotional state *before* clicking buy (Calm 😊, Confident 😎, Anxious 😟, Revenge 😡).
-  - Attach a chart screenshot (base64 URL, stored in SQLite) or type notes and click **Save**.
-
-### Phase C: Review (Post-Market)
-- Check the **AI Coach panel** for automated diagnostics (flags emotional leaks, streaks, and risk-reward ratios).
-- Open **Analytics** to view the **Calendar Heatmap** (to audit green/red day streaks) and the **Size vs P&L Scatter Plot** (to check if your biggest losses are tied to size inflation).
+Made with ❤️ for disciplined traders.
