@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { Trade } from '../types';
+import type { Trade, Execution } from '../types';
 import { STRATEGIES, EMOTIONS, INDIAN_MARKETS, CRYPTO_MARKETS } from '../constants';
-import { Plus, Search, X, Check, Calculator, Eye, HelpCircle } from 'lucide-react';
+import { Plus, Search, X, Check, Calculator, Eye, HelpCircle, Trash2, Tag } from 'lucide-react';
 
 interface LogTradeViewProps {
   onAddTrade: (trade: Trade) => void;
@@ -23,6 +23,105 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
   const [optionType, setOptionType] = useState<'CE' | 'PE' | 'NONE'>('NONE');
   const [strategiesList, setStrategiesList] = useState<string[]>(STRATEGIES);
   const [strategy, setStrategy] = useState<string>(STRATEGIES[0]);
+
+  // Tags & Multiple Executions (Scale-In / Scale-Out) State
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [useExecutions, setUseExecutions] = useState(false);
+  const [executions, setExecutions] = useState<Execution[]>([]);
+  const [execType, setExecType] = useState<'BUY' | 'SELL'>('BUY');
+  const [execPrice, setExecPrice] = useState('');
+  const [execQty, setExecQty] = useState('');
+
+  // Helper to add a tag on Space, Comma, or Enter keys
+  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+      e.preventDefault();
+      let val = tagInput.trim().replace(/,/g, '');
+      if (val) {
+        if (!val.startsWith('#')) val = '#' + val;
+        if (!tags.includes(val)) {
+          setTags([...tags, val]);
+        }
+      }
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (t: string) => {
+    setTags(tags.filter(tag => tag !== t));
+  };
+
+  const handleAddExecution = () => {
+    const price = parseFloat(execPrice);
+    const qty = parseFloat(execQty);
+    if (isNaN(price) || price <= 0 || isNaN(qty) || qty <= 0) {
+      alert('Please enter a valid price and quantity for the execution.');
+      return;
+    }
+
+    const newExec: Execution = {
+      id: Math.random().toString(36).substring(2, 11),
+      type: execType,
+      price,
+      quantity: qty,
+      date: new Date().toISOString()
+    };
+
+    const updated = [...executions, newExec];
+    setExecutions(updated);
+    setExecPrice('');
+    setExecQty('');
+
+    recalculateFromExecutions(updated);
+  };
+
+  const handleRemoveExecution = (id: string) => {
+    const updated = executions.filter(e => e.id !== id);
+    setExecutions(updated);
+    recalculateFromExecutions(updated);
+  };
+
+  const recalculateFromExecutions = (execList: Execution[]) => {
+    if (execList.length === 0) {
+      setEntryPrice('');
+      setExitPrice('');
+      setQuantity('');
+      return;
+    }
+
+    // First execution determines trade direction
+    const firstType = execList[0].type;
+    setType(firstType);
+
+    const entrySide = firstType;
+    const exitSide = firstType === 'BUY' ? 'SELL' : 'BUY';
+
+    const entries = execList.filter(e => e.type === entrySide);
+    const exits = execList.filter(e => e.type === exitSide);
+
+    let totalEntryCost = 0;
+    let totalEntryQty = 0;
+    entries.forEach(e => {
+      totalEntryCost += e.price * e.quantity;
+      totalEntryQty += e.quantity;
+    });
+
+    let totalExitRevenue = 0;
+    let totalExitQty = 0;
+    exits.forEach(e => {
+      totalExitRevenue += e.price * e.quantity;
+      totalExitQty += e.quantity;
+    });
+
+    const avgEntry = totalEntryQty > 0 ? totalEntryCost / totalEntryQty : 0;
+    const avgExit = totalExitQty > 0 ? totalExitRevenue / totalExitQty : avgEntry;
+    const qty = totalEntryQty;
+
+    setEntryPrice(avgEntry > 0 ? avgEntry.toFixed(2) : '');
+    setExitPrice(avgExit > 0 ? avgExit.toFixed(2) : '');
+    setQuantity(qty > 0 ? qty.toFixed(2) : '');
+  };
 
   // Fetch strategies from backend API
   useEffect(() => {
@@ -167,7 +266,9 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
       status: 'CLOSED',
       recurring: 'NONE',
       strikePrice: market === 'INDEX' && strikePrice ? parseFloat(strikePrice) : undefined,
-      optionType: market === 'INDEX' ? optionType : 'NONE'
+      optionType: market === 'INDEX' ? optionType : 'NONE',
+      tags,
+      executions: useExecutions ? executions : []
     };
 
     onAddTrade(newTrade);
@@ -333,12 +434,141 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
 
           </div>
 
+          {/* Scale-In / Scale-Out Execution Logger Toggle & Form */}
+          <div className="p-4 bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-xs font-extrabold text-[#1C1C1E] block">
+                  Scale-In / Scale-Out Execution Logs
+                </label>
+                <span className="text-[10px] text-[#5C5C5E] font-medium leading-none">
+                  Enable to log multiple partial entries and exits
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setUseExecutions(!useExecutions);
+                  if (!useExecutions) {
+                    setExecutions([]);
+                    setEntryPrice('');
+                    setExitPrice('');
+                    setQuantity('');
+                  }
+                }}
+                className={`w-10 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 focus:outline-none ${
+                  useExecutions ? 'bg-[#244230]' : 'bg-[#EAEAE2]'
+                }`}
+              >
+                <div
+                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                    useExecutions ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {useExecutions && (
+              <div className="space-y-4 border-t border-[#D9D9D2]/50 pt-3">
+                {/* Execution input form */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] font-bold text-[#5C5C5E] uppercase">Type</span>
+                    <div className="flex bg-[#EAEAE2] p-0.5 rounded-lg gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setExecType('BUY')}
+                        className={`flex-1 py-1 text-[10px] font-extrabold rounded ${
+                          execType === 'BUY' ? 'bg-[#166534] text-white' : 'text-[#5C5C5E] hover:text-[#1C1C1E]'
+                        }`}
+                      >
+                        BUY
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setExecType('SELL')}
+                        className={`flex-1 py-1 text-[10px] font-extrabold rounded ${
+                          execType === 'SELL' ? 'bg-[#991B1B] text-white' : 'text-[#5C5C5E] hover:text-[#1C1C1E]'
+                        }`}
+                      >
+                        SELL
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] font-bold text-[#5C5C5E] uppercase">Price (₹)</span>
+                    <input
+                      type="number"
+                      step="any"
+                      value={execPrice}
+                      onChange={(e) => setExecPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-2 py-1 text-xs bg-white border border-[#D9D9D2] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] font-bold text-[#5C5C5E] uppercase">Quantity</span>
+                    <input
+                      type="number"
+                      step="any"
+                      value={execQty}
+                      onChange={(e) => setExecQty(e.target.value)}
+                      placeholder="0"
+                      className="w-full px-2 py-1 text-xs bg-white border border-[#D9D9D2] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddExecution}
+                    className="bg-[#244230] hover:bg-[#1D3526] text-white py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer text-center"
+                  >
+                    Add Tranche
+                  </button>
+                </div>
+
+                {/* Execution List */}
+                {executions.length > 0 ? (
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] font-bold text-[#5C5C5E] uppercase block">Executions Logged</span>
+                    <div className="space-y-1 max-h-36 overflow-y-auto scrollbar-thin">
+                      {executions.map((e, idx) => (
+                        <div key={e.id} className="flex items-center justify-between bg-white border border-[#D9D9D2]/70 p-2 rounded-lg text-[10px] font-bold text-[#1C1C1E]">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[#5C5C5E]">#{idx + 1}</span>
+                            <span className={`px-1 rounded ${e.type === 'BUY' ? 'bg-[#D4E8DC] text-[#166534]' : 'bg-[#FADCDC] text-[#991B1B]'}`}>
+                              {e.type}
+                            </span>
+                            <span>{e.quantity} shares @ ₹{e.price.toLocaleString('en-IN')}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExecution(e.id)}
+                            className="text-[#5C5C5E] hover:text-[#991B1B] p-1 transition-colors cursor-pointer"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-[10px] text-[#5C5C5E] font-medium border border-[#D9D9D2]/40 border-dashed rounded-lg bg-white">
+                    No execution tranches added yet. Add a BUY or SELL tranche above.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Pricing Row 1: Entry, Exit, Quantity */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             <div className="space-y-2">
               <label className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">
-                Entry Price (₹)
+                {useExecutions ? 'Avg Entry Price (₹) [Auto]' : 'Entry Price (₹)'}
               </label>
               <input
                 type="number"
@@ -347,13 +577,16 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
                 onChange={(e) => setEntryPrice(e.target.value)}
                 placeholder="0.00"
                 required
-                className="w-full px-4 py-2.5 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
+                readOnly={useExecutions}
+                className={`w-full px-4 py-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E] ${
+                  useExecutions ? 'bg-gray-100/80 border-[#D9D9D2]/50 cursor-not-allowed opacity-75' : 'bg-[#FAFAF7] border-[#D9D9D2]'
+                }`}
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">
-                Exit Price (₹)
+                {useExecutions ? 'Avg Exit Price (₹) [Auto]' : 'Exit Price (₹)'}
               </label>
               <input
                 type="number"
@@ -362,13 +595,16 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
                 onChange={(e) => setExitPrice(e.target.value)}
                 placeholder="0.00"
                 required
-                className="w-full px-4 py-2.5 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
+                readOnly={useExecutions}
+                className={`w-full px-4 py-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E] ${
+                  useExecutions ? 'bg-gray-100/80 border-[#D9D9D2]/50 cursor-not-allowed opacity-75' : 'bg-[#FAFAF7] border-[#D9D9D2]'
+                }`}
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">
-                Quantity
+                {useExecutions ? 'Total Quantity [Auto]' : 'Quantity'}
               </label>
               <input
                 type="number"
@@ -377,7 +613,10 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0"
                 required
-                className="w-full px-4 py-2.5 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
+                readOnly={useExecutions}
+                className={`w-full px-4 py-2.5 text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E] ${
+                  useExecutions ? 'bg-gray-100/80 border-[#D9D9D2]/50 cursor-not-allowed opacity-75' : 'bg-[#FAFAF7] border-[#D9D9D2]'
+                }`}
               />
             </div>
 
@@ -476,6 +715,42 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
                 + Add Custom Strategy Setup...
               </option>
             </select>
+          </div>
+
+          {/* Tags Input */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block flex items-center gap-1">
+              <Tag size={10} /> Trade Tags
+            </label>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleAddTag}
+                placeholder="Type tag (e.g. FOMO) and press space, comma, or enter"
+                className="w-full px-4 py-2.5 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
+              />
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {tags.map((t) => (
+                    <span
+                      key={t}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#EAEAE2] text-[#1C1C1E] uppercase tracking-wide border border-[#D9D9D2]/40"
+                    >
+                      {t}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(t)}
+                        className="text-[#5C5C5E] hover:text-[#991B1B] transition-colors cursor-pointer"
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Emotion Grid */}

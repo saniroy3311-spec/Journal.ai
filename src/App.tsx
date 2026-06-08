@@ -8,6 +8,7 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Calendar } from 'lucide-react';
 import { LoginView } from './components/LoginView';
+import { AICoachView } from './components/AICoachView';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('DASHBOARD');
@@ -21,6 +22,9 @@ function App() {
   // Auth Session State
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [username, setUsername] = useState<string | null>(localStorage.getItem('username'));
+
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+  const handleRefresh = () => setRefreshTrigger((prev) => prev + 1);
 
   const handleOpenCapitalModal = () => {
     setTempCapital(startingCapital.toString());
@@ -75,9 +79,14 @@ function App() {
           throw new Error('Failed to load data from server');
         }
         const tradesData = await tradesRes.json();
+        const parsedTrades = tradesData.map((t: any) => ({
+          ...t,
+          tags: t.tags ? (typeof t.tags === 'string' ? JSON.parse(t.tags) : t.tags) : [],
+          executions: t.executions ? (typeof t.executions === 'string' ? JSON.parse(t.executions) : t.executions) : []
+        }));
         const instData = await instRes.json();
         const capData = await capRes.json();
-        setTrades(tradesData);
+        setTrades(parsedTrades);
         setCustomInstructions(instData.value);
         setStartingCapital(capData.value);
       } catch (e) {
@@ -87,7 +96,7 @@ function App() {
       }
     }
     loadData();
-  }, [token]);
+  }, [token, refreshTrigger]);
 
   const handleUpdateStartingCapital = async (value: number) => {
     setStartingCapital(value);
@@ -334,6 +343,8 @@ function App() {
               <HistoryView
                 trades={filteredTrades}
                 onDeleteTrade={handleDeleteTrade}
+                token={token}
+                onImportComplete={handleRefresh}
               />
             </motion.div>
           )}
@@ -347,6 +358,23 @@ function App() {
               transition={{ duration: 0.25, ease: 'easeOut' }}
             >
               <AnalyticsView trades={filteredTrades} onSelectTradeImage={setSelectedImage} />
+            </motion.div>
+          )}
+
+          {activeTab === 'COACH' && (
+            <motion.div
+              key="coach"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+            >
+              <AICoachView
+                trades={trades}
+                customInstructions={customInstructions}
+                setCustomInstructions={setCustomInstructions}
+                startingCapital={startingCapital}
+              />
             </motion.div>
           )}
         </AnimatePresence>

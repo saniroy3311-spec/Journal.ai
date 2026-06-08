@@ -261,7 +261,9 @@ async function initDb() {
       recurring TEXT,
       strikePrice REAL,
       optionType TEXT,
-      userId TEXT
+      userId TEXT,
+      tags TEXT,
+      executions TEXT
     );
 
     CREATE TABLE IF NOT EXISTS config (
@@ -279,6 +281,12 @@ async function initDb() {
   } catch (e) { /* Ignore */ }
   try {
     await db.execute(`ALTER TABLE trades ADD COLUMN userId TEXT;`);
+  } catch (e) { /* Ignore */ }
+  try {
+    await db.execute(`ALTER TABLE trades ADD COLUMN tags TEXT;`);
+  } catch (e) { /* Ignore */ }
+  try {
+    await db.execute(`ALTER TABLE trades ADD COLUMN executions TEXT;`);
   } catch (e) { /* Ignore */ }
 
   // Migrate any old trades with missing userId to the default demo user
@@ -450,16 +458,19 @@ app.post('/api/trades', authenticateToken, async (req, res) => {
     });
     const existing = resExist.rows[0];
     
+    const tagsStr = t.tags ? (typeof t.tags === 'object' ? JSON.stringify(t.tags) : t.tags) : '[]';
+    const execsStr = t.executions ? (typeof t.executions === 'object' ? JSON.stringify(t.executions) : t.executions) : '[]';
+
     if (existing) {
       await db.execute({
-        sql: `UPDATE trades SET symbol=?, type=?, market=?, entryPrice=?, exitPrice=?, quantity=?, date=?, strategy=?, setupName=?, emotion=?, screenshot=?, sl=?, tp=?, pnl=?, pnlPercentage=?, notes=?, status=?, recurring=?, strikePrice=?, optionType=? WHERE id=? AND userId=?`,
-        args: [t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', t.id, req.user.id]
+        sql: `UPDATE trades SET symbol=?, type=?, market=?, entryPrice=?, exitPrice=?, quantity=?, date=?, strategy=?, setupName=?, emotion=?, screenshot=?, sl=?, tp=?, pnl=?, pnlPercentage=?, notes=?, status=?, recurring=?, strikePrice=?, optionType=?, tags=?, executions=? WHERE id=? AND userId=?`,
+        args: [t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', tagsStr, execsStr, t.id, req.user.id]
       });
     } else {
       await db.execute({
-        sql: `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', req.user.id]
+        sql: `INSERT INTO trades (id, symbol, type, market, entryPrice, exitPrice, quantity, date, strategy, setupName, emotion, screenshot, sl, tp, pnl, pnlPercentage, notes, status, recurring, strikePrice, optionType, userId, tags, executions) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [t.id, t.symbol, t.type, t.market, t.entryPrice, t.exitPrice, t.quantity, t.date, t.strategy, t.setupName, t.emotion, t.screenshot || null, t.sl, t.tp, t.pnl, t.pnlPercentage, t.notes, t.status || 'CLOSED', t.recurring || 'NONE', t.strikePrice || null, t.optionType || 'NONE', req.user.id, tagsStr, execsStr]
       });
     }
     res.json({ success: true });

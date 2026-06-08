@@ -35,7 +35,8 @@ import {
   ChevronRight,
   Info,
   CalendarCheck,
-  CircleDot
+  CircleDot,
+  Tag
 } from 'lucide-react';
 
 interface AnalyticsViewProps {
@@ -43,7 +44,7 @@ interface AnalyticsViewProps {
   onSelectTradeImage: (url: string) => void;
 }
 
-type SubTabType = 'OVERVIEW' | 'STRATEGY' | 'CALENDAR' | 'PSYCHOLOGY';
+type SubTabType = 'OVERVIEW' | 'STRATEGY' | 'CALENDAR' | 'PSYCHOLOGY' | 'TAGS';
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTradeImage }) => {
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('OVERVIEW');
@@ -57,7 +58,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
     { id: 'OVERVIEW' as SubTabType, label: 'Overview', icon: TrendingUp },
     { id: 'STRATEGY' as SubTabType, label: 'Strategy Breakdowns', icon: Briefcase },
     { id: 'CALENDAR' as SubTabType, label: 'Trading Calendar', icon: Calendar },
-    { id: 'PSYCHOLOGY' as SubTabType, label: 'Psychology & Emotions', icon: Brain }
+    { id: 'PSYCHOLOGY' as SubTabType, label: 'Psychology & Emotions', icon: Brain },
+    { id: 'TAGS' as SubTabType, label: 'Tag Analysis', icon: Tag }
   ];
 
   // ----------------------------------------------------
@@ -138,6 +140,36 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
       avgPnL
     };
   }).filter(e => e.count > 0);
+
+  // ----------------------------------------------------
+  // TAGS DATA PREPARATION
+  // ----------------------------------------------------
+  const tagStatsMap: Record<string, { count: number; wins: number; netPnL: number }> = {};
+  closedTrades.forEach(t => {
+    const tradeTags = t.tags || [];
+    tradeTags.forEach(tag => {
+      if (!tagStatsMap[tag]) {
+        tagStatsMap[tag] = { count: 0, wins: 0, netPnL: 0 };
+      }
+      tagStatsMap[tag].count += 1;
+      if (t.pnl > 0) tagStatsMap[tag].wins += 1;
+      tagStatsMap[tag].netPnL += t.pnl;
+    });
+  });
+
+  const tagStats = Object.keys(tagStatsMap).map(name => {
+    const { count, wins, netPnL } = tagStatsMap[name];
+    const winRate = count > 0 ? (wins / count) * 100 : 0;
+    const avgPnL = count > 0 ? netPnL / count : 0;
+    return {
+      name,
+      count,
+      wins,
+      winRate,
+      netPnL,
+      avgPnL
+    };
+  }).sort((a, b) => b.netPnL - a.netPnL);
 
   // ----------------------------------------------------
   // CALENDAR DATA PREPARATION
@@ -428,7 +460,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                   <p className="text-[11px] text-[#5C5C5E] font-semibold">Data table breaking down metrics per strategy setup</p>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs font-bold text-[#1C1C1E]">
+                  <table className="w-full min-w-[600px] text-xs font-bold text-[#1C1C1E]">
                     <thead>
                       <tr className="bg-[#FAFAF7] border-b border-[#D9D9D2] text-[#5C5C5E] uppercase text-[10px] tracking-wider">
                         <th className="px-6 py-3.5 text-left">Strategy Setup</th>
@@ -479,7 +511,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               
               {/* Calendar Grid Container (Col 1 & 2) */}
-              <div className="lg:col-span-2 bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-6">
+              <div className="lg:col-span-2 bg-white border border-[#D9D9D2] p-3 sm:p-6 rounded-2xl premium-shadow space-y-4 sm:space-y-6">
                 
                 {/* Header: navigation */}
                 <div className="flex items-center justify-between">
@@ -506,7 +538,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                 </div>
 
                 {/* Week Day Header */}
-                <div className="grid grid-cols-7 gap-2.5 text-center text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2.5 text-center text-[9px] sm:text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider">
                   <span>Mon</span>
                   <span>Tue</span>
                   <span>Wed</span>
@@ -517,7 +549,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                 </div>
 
                 {/* Day Grid */}
-                <div className="grid grid-cols-7 gap-2.5">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2.5">
                   {/* Padding cells */}
                   {paddingCells.map((_, idx) => (
                     <div key={`pad-${idx}`} className="aspect-square bg-transparent border border-transparent" />
@@ -550,13 +582,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                       <button
                         key={day.toISOString()}
                         onClick={() => setSelectedCalendarDay(day)}
-                        className={`aspect-square p-1.5 rounded-xl border flex flex-col justify-between items-start transition-all cursor-pointer ${bgStyle} ${
+                        className={`aspect-square p-0.5 sm:p-1.5 rounded-lg sm:rounded-xl border flex flex-col justify-between items-start transition-all cursor-pointer ${bgStyle} ${
                           isSelected ? 'ring-2 ring-[#244230] scale-105 shadow-md' : 'hover:scale-102 hover:shadow-sm'
                         }`}
                       >
-                        <span className="text-[10px]">{format(day, 'd')}</span>
+                        <span className="text-[9px] sm:text-[10px]">{format(day, 'd')}</span>
                         {hasTrades && (
-                          <span className="text-[8px] font-black block w-full text-right truncate">
+                          <span className="text-[7px] sm:text-[8px] font-black block w-full text-right truncate">
                             {netPnL !== 0
                               ? `${netPnL > 0 ? '+' : ''}${Math.round(netPnL / 1000)}k`
                               : '0'}
@@ -671,7 +703,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                   <p className="text-[11px] text-[#5C5C5E] font-semibold">Breakdown of metrics classified by emotional tag</p>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs font-bold text-[#1C1C1E]">
+                  <table className="w-full min-w-[500px] text-xs font-bold text-[#1C1C1E]">
                     <thead>
                       <tr className="bg-[#FAFAF7] border-b border-[#D9D9D2] text-[#5C5C5E] uppercase text-[10px] tracking-wider">
                         <th className="px-4 py-2.5 text-left">Emotion</th>
@@ -706,6 +738,104 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                   </table>
                 </div>
               </div>
+
+            </div>
+          )}
+
+          {/* ----------------------------------------------------
+              TAGS TAB
+              ---------------------------------------------------- */}
+          {activeSubTab === 'TAGS' && (
+            <div className="space-y-6">
+              
+              {/* Net P&L per Tag Bar Chart */}
+              <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
+                <div>
+                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                    Net P&L Per Tag
+                  </h3>
+                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Cost and profit attribution per tag setups (like #FOMO vs #RulesFollowed)</p>
+                </div>
+                {tagStats.length === 0 ? (
+                  <div className="text-center py-12 text-xs text-[#5C5C5E] font-medium border border-[#D9D9D2]/40 border-dashed rounded-xl bg-[#FAFAF7]">
+                    No tags found. Add tags to your trades in the Log Trade tab to see advanced tagging statistics.
+                  </div>
+                ) : (
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={tagStats} layout="vertical" margin={{ left: 30 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" horizontal={false} />
+                        <XAxis type="number" stroke="#5C5C5E" fontSize={11} fontWeight={600} />
+                        <YAxis dataKey="name" type="category" stroke="#5C5C5E" fontSize={11} fontWeight={600} width={120} tickLine={false} />
+                        <Tooltip
+                          formatter={(val: any) => [`₹${(val || 0).toLocaleString('en-IN')}`, 'Net P&L']}
+                          contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
+                        />
+                        <Bar dataKey="netPnL">
+                          {tagStats.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.netPnL >= 0 ? '#5C8A6E' : '#B56B6B'}
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              {/* Tag Details Table */}
+              {tagStats.length > 0 && (
+                <div className="bg-white border border-[#D9D9D2] rounded-2xl overflow-hidden premium-shadow">
+                  <div className="p-6 border-b border-[#D9D9D2]/40">
+                    <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                      Tag Statistics Engine
+                    </h3>
+                    <p className="text-[11px] text-[#5C5C5E] font-semibold">Table showing net outcomes of trades categorized by custom tags</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[600px] text-xs font-bold text-[#1C1C1E]">
+                      <thead>
+                        <tr className="bg-[#FAFAF7] border-b border-[#D9D9D2] text-[#5C5C5E] uppercase text-[10px] tracking-wider">
+                          <th className="px-6 py-3.5 text-left">Tag Label</th>
+                          <th className="px-6 py-3.5 text-center">Trades</th>
+                          <th className="px-6 py-3.5 text-center">Wins</th>
+                          <th className="px-6 py-3.5 text-center">Win Rate</th>
+                          <th className="px-6 py-3.5 text-right">Net P&L</th>
+                          <th className="px-6 py-3.5 text-right">Avg P&L</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#D9D9D2]/40">
+                        {tagStats.map((t) => (
+                          <tr key={t.name} className="hover:bg-[#FAFAF7]/50">
+                            <td className="px-6 py-4 font-black text-[#244230]">{t.name}</td>
+                            <td className="px-6 py-4 text-center text-[#5C5C5E]">{t.count}</td>
+                            <td className="px-6 py-4 text-center text-[#5C5C5E]">{t.wins}</td>
+                            <td className="px-6 py-4 text-center">
+                              <span className={`px-2 py-0.5 rounded-full ${
+                                t.winRate >= 50 ? 'bg-[#D4E8DC] text-[#166534]' : 'bg-orange-50 text-orange-700'
+                              }`}>
+                                {t.winRate.toFixed(1)}%
+                              </span>
+                            </td>
+                            <td className={`px-6 py-4 text-right font-black ${
+                              t.netPnL >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
+                            }`}>
+                              {t.netPnL >= 0 ? '+' : ''}₹{t.netPnL.toLocaleString('en-IN')}
+                            </td>
+                            <td className={`px-6 py-4 text-right ${
+                              t.avgPnL >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
+                            }`}>
+                              {t.avgPnL >= 0 ? '+' : ''}₹{Math.round(t.avgPnL).toLocaleString('en-IN')}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
             </div>
           )}

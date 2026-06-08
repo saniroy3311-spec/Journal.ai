@@ -1,3 +1,11 @@
+export interface Execution {
+  id: string;
+  type: 'BUY' | 'SELL';
+  price: number;
+  quantity: number;
+  date: string;
+}
+
 export interface Trade {
   id: string;
   symbol: string;             // e.g. "NIFTY 50", "BTC/USD"
@@ -20,6 +28,8 @@ export interface Trade {
   recurring?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
   strikePrice?: number;
   optionType?: 'CE' | 'PE' | 'NONE';
+  tags?: string[];
+  executions?: Execution[];
 }
 
 export interface EmotionOption {
@@ -27,5 +37,5 @@ export interface EmotionOption {
   label: string;
 }
 
-export type TabType = 'DASHBOARD' | 'LOG' | 'HISTORY' | 'ANALYTICS';
-export type AnalyticsSubTabType = 'OVERVIEW' | 'STRATEGY' | 'CALENDAR' | 'PSYCHOLOGY';
+export type TabType = 'DASHBOARD' | 'LOG' | 'HISTORY' | 'ANALYTICS' | 'COACH';
+export type AnalyticsSubTabType = 'OVERVIEW' | 'STRATEGY' | 'CALENDAR' | 'PSYCHOLOGY' | 'TAGS';

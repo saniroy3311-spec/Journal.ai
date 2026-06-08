@@ -1,4 +1,4 @@
-import { LayoutDashboard, PlusCircle, BookOpen, BarChart3, Edit2, LogOut } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, BookOpen, BarChart3, Edit2, LogOut, Sparkles } from 'lucide-react';
 import type { TabType } from '../types';
 import { motion } from 'framer-motion';
 
@@ -23,7 +23,8 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'DASHBOARD' as TabType, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'LOG' as TabType, label: 'Log Trade', icon: PlusCircle },
     { id: 'HISTORY' as TabType, label: 'History', icon: BookOpen },
-    { id: 'ANALYTICS' as TabType, label: 'Analytics', icon: BarChart3 }
+    { id: 'ANALYTICS' as TabType, label: 'Analytics', icon: BarChart3 },
+    { id: 'COACH' as TabType, label: 'AI Coach', icon: Sparkles }
   ];
 
   return (

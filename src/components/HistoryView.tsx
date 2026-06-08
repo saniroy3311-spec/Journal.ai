@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
 import type { Trade } from '../types';
-import { Search, Trash2, Calendar, FileText, Compass, ShieldAlert, Award } from 'lucide-react';
+import { Search, Trash2, Calendar, FileText, Compass, ShieldAlert, Award, Upload } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { CSVImporter } from './CSVImporter';
 
 interface HistoryViewProps {
   trades: Trade[];
   onDeleteTrade: (id: string) => void;
+  token?: string | null;
+  onImportComplete?: () => void;
 }
 
 type FilterType = 'ALL' | 'BUY' | 'SELL';
 
 export const HistoryView: React.FC<HistoryViewProps> = ({
   trades,
-  onDeleteTrade
+  onDeleteTrade,
+  token,
+  onImportComplete
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
+  const [isImporterOpen, setIsImporterOpen] = useState(false);
 
   // Filter logic
   const filteredTrades = trades.filter((trade) => {
@@ -213,17 +219,26 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             Search, filter, and inspect past performance journals
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {token && (
+            <button
+              onClick={() => setIsImporterOpen(true)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-[#FAFAF7] border border-[#D9D9D2] hover:bg-[#EAEAE2] text-[#1C1C1E] text-xs font-bold rounded-xl transition-colors cursor-pointer"
+            >
+              <Upload size={14} className="text-[#244230]" />
+              <span>Import CSV</span>
+            </button>
+          )}
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#FAFAF7] border border-[#D9D9D2] hover:bg-[#EAEAE2] text-[#1C1C1E] text-xs font-bold rounded-xl transition-colors cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-[#FAFAF7] border border-[#D9D9D2] hover:bg-[#EAEAE2] text-[#1C1C1E] text-xs font-bold rounded-xl transition-colors cursor-pointer"
           >
             <FileText size={14} className="text-[#166534]" />
-            <span>Export CSV (Excel)</span>
+            <span>Export CSV</span>
           </button>
           <button
             onClick={handleExportPDF}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#FAFAF7] border border-[#D9D9D2] hover:bg-[#EAEAE2] text-[#1C1C1E] text-xs font-bold rounded-xl transition-colors cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-[#FAFAF7] border border-[#D9D9D2] hover:bg-[#EAEAE2] text-[#1C1C1E] text-xs font-bold rounded-xl transition-colors cursor-pointer"
           >
             <FileText size={14} className="text-[#991B1B]" />
             <span>Download PDF</span>
@@ -319,6 +334,21 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                           <>
                             <span>•</span>
                             <span className="text-[#1C1C1E]">{trade.setupName}</span>
+                          </>
+                        )}
+                        {trade.tags && trade.tags.length > 0 && (
+                          <>
+                            <span>•</span>
+                            <div className="flex flex-wrap gap-1">
+                              {trade.tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="bg-[#244230]/10 text-[#244230] px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
                           </>
                         )}
                       </div>
@@ -431,6 +461,28 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                         </div>
                       </div>
                     </div>
+
+                    {/* Scale-In / Scale-Out Tranche details */}
+                    {trade.executions && trade.executions.length > 0 && (
+                      <div className="pt-3 border-t border-[#D9D9D2]/40 space-y-2">
+                        <span className="text-[10px] font-bold text-[#7C7C7E] tracking-wider block">EXECUTION TRANCHES</span>
+                        <div className="space-y-1.5 max-h-32 overflow-y-auto scrollbar-thin">
+                          {trade.executions.map((exec, idx) => (
+                            <div key={exec.id || idx} className="flex justify-between items-center text-[10px] bg-white border border-[#D9D9D2]/40 p-2 rounded-lg font-bold">
+                              <span className={`px-1.5 py-0.5 rounded text-[8px] ${
+                                exec.type === 'BUY' ? 'bg-[#D4E8DC] text-[#166534]' : 'bg-[#FADCDC] text-[#991B1B]'
+                              }`}>
+                                {exec.type}
+                              </span>
+                              <span className="text-[#1C1C1E]">{exec.quantity} @ ₹{exec.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                              <span className="text-[#5C5C5E] text-[9px]">
+                                {exec.date ? format(parseISO(exec.date), 'hh:mm a') : ''}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Notes Column */}
@@ -454,6 +506,19 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           })
         )}
       </div>
+
+      {isImporterOpen && token && (
+        <CSVImporter
+          token={token}
+          onClose={() => setIsImporterOpen(false)}
+          onImportComplete={() => {
+            setIsImporterOpen(false);
+            if (onImportComplete) {
+              onImportComplete();
+            }
+          }}
+        />
+      )}
 
     </div>
   );
