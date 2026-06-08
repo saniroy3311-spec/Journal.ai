@@ -27,13 +27,15 @@ interface DashboardViewProps {
   onEditCapital: () => void;
   customInstructions: string;
   onSelectTradeImage: (url: string) => void;
+  username: string;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   trades,
   startingCapital,
   onEditCapital,
-  onSelectTradeImage
+  onSelectTradeImage,
+  username
 }) => {
   const stats = calculateStats(trades, startingCapital);
 
@@ -68,8 +70,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
     <div className="space-y-6 md:space-y-8 px-4 md:px-8 py-4 md:py-6 pb-24 md:pb-12 max-w-7xl mx-auto">
+      
+      {/* Personalized Greeting Header */}
+      <div className="bg-gradient-to-r from-[#244230]/5 via-transparent to-[#5C8A6E]/5 border border-[#D9D9D2]/40 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden shadow-inner-sm">
+        <div className="space-y-1 relative z-10">
+          <h2 className="text-xl md:text-2xl font-black font-display text-[#1C1C1E] tracking-tight">
+            {getGreeting()}, <span className="text-[#244230] font-black">@{username}</span>!
+          </h2>
+          <p className="text-xs text-[#5C5C5E] font-semibold">
+            {trades.length === 0 
+              ? "Welcome to your trading command center. Let's start by logging your first trade!" 
+              : `You have logged ${trades.length} trades. Let's analyze your performance today.`}
+          </p>
+        </div>
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="text-xs font-bold text-[#5C5C5E] bg-[#FAFAF7] border border-[#D9D9D2] px-3.5 py-2 rounded-2xl flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Market Feed Live</span>
+          </div>
+        </div>
+        
+        {/* Subtle decorative glow in background */}
+        <div className="absolute right-0 bottom-0 w-24 h-24 rounded-full bg-[#5C8A6E]/10 blur-2xl pointer-events-none" />
+      </div>
       
       {/* Row 1: 3 Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

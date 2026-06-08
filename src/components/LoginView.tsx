@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 interface LoginViewProps {
-  onLoginSuccess: (token: string, username: string) => void;
+  onLoginSuccess: (token: string, username: string, isRegistering?: boolean) => void;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
@@ -54,7 +54,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         throw new Error(data.error || 'Failed to authenticate.');
       }
 
-      onLoginSuccess(data.token, data.user.username);
+      onLoginSuccess(data.token, data.user.username, isRegistering);
     } catch (err: any) {
       setError(err.message || 'Server connection failed.');
     } finally {

@@ -23,6 +23,18 @@ function App() {
   // Auth Session State
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [username, setUsername] = useState<string | null>(localStorage.getItem('username'));
+  const [showWelcome, setShowWelcome] = useState<boolean>(false);
+  const [welcomeType, setWelcomeType] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+
+  // Auto-dismiss welcome banner
+  useEffect(() => {
+    if (showWelcome) {
+      const timer = setTimeout(() => {
+        setShowWelcome(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome]);
 
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const handleRefresh = () => setRefreshTrigger((prev) => prev + 1);
@@ -32,11 +44,13 @@ function App() {
     setIsCapitalModalOpen(true);
   };
 
-  const handleLoginSuccess = (newToken: string, newUsername: string) => {
+  const handleLoginSuccess = (newToken: string, newUsername: string, isRegistering?: boolean) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('username', newUsername);
     setToken(newToken);
     setUsername(newUsername);
+    setWelcomeType(isRegistering ? 'REGISTER' : 'LOGIN');
+    setShowWelcome(true);
   };
 
   const handleLogout = () => {
@@ -238,6 +252,38 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white text-[#1C1C1E] flex flex-col font-sans select-none antialiased">
+      {/* Sliding Welcome Notification */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md border border-[#D9D9D2] px-6 py-4 rounded-2xl shadow-[0_20px_50px_rgba(36,66,48,0.12)] flex items-center gap-4 max-w-md w-[90%]"
+          >
+            <div className="w-9 h-9 rounded-xl bg-[#244230] flex items-center justify-center text-white font-black text-sm shadow-md">
+              J
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-extrabold text-[#1C1C1E] tracking-tight">
+                {welcomeType === 'REGISTER' ? 'Welcome to Journal.ai! 🚀' : 'Welcome back! 👋'}
+              </h3>
+              <p className="text-xs text-[#5C5C5E] font-semibold mt-0.5 truncate">
+                {welcomeType === 'REGISTER' 
+                  ? `Nice to meet you, @${username}! Let's build your trading edge.` 
+                  : `Glad to see you again, @${username}! Happy trading today.`}
+              </p>
+            </div>
+            <button 
+              onClick={() => setShowWelcome(false)}
+              className="p-1 rounded-lg hover:bg-[#EAEAE2] text-[#5C5C5E] transition-colors cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header Bar */}
       <Header
         activeTab={activeTab}
@@ -319,6 +365,7 @@ function App() {
                 onEditCapital={handleOpenCapitalModal}
                 customInstructions={customInstructions}
                 onSelectTradeImage={setSelectedImage}
+                username={username || ''}
               />
             </motion.div>
           )}
