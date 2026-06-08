@@ -72,7 +72,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const stats = calculateStats(trades, startingCapital);
   const insights = generateCoachInsights(trades, customInstructions, startingCapital);
 
-  const closedTrades = trades;
+  const closedTrades = trades.filter(t => t.status === 'CLOSED');
 
   // Equity Curve Chart Data preparation
   const initialCapital = startingCapital;
@@ -196,77 +196,89 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="h-56 md:h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorEquity" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#166534" stopOpacity={0.15}/>
-                  <stop offset="95%" stopColor="#166534" stopOpacity={0.0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" vertical={false} />
-              <XAxis 
-                dataKey="name" 
-                stroke="#5C5C5E" 
-                fontSize={11} 
-                fontWeight={600}
-                tickLine={false} 
-                axisLine={false}
-                dy={10}
-                minTickGap={15}
-              />
-              <YAxis 
-                stroke="#5C5C5E" 
-                fontSize={11} 
-                fontWeight={600}
-                tickLine={false} 
-                axisLine={false}
-                domain={['dataMin - 10000', 'dataMax + 10000']}
-                tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                dx={-10}
-              />
-              <Tooltip 
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    return (
-                      <div className="bg-white border border-[#D9D9D2] p-4 rounded-xl shadow-lg max-w-xs space-y-2">
-                        <p className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider">
-                          {data.dateStr || 'Baseline'}
-                        </p>
-                        <div className="flex justify-between items-baseline gap-4">
-                          <span className="text-xs font-bold text-[#1C1C1E]">Equity:</span>
-                          <span className="text-sm font-extrabold text-[#1C1C1E] font-display">
-                            ₹{data.equity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                          </span>
-                        </div>
-                        {data.pnl !== 0 && (
-                          <div className="pt-1.5 border-t border-[#D9D9D2]/50 flex justify-between items-center text-xs">
-                            <span className="font-semibold text-[#5C5C5E]">{data.symbol} P&L:</span>
-                            <span className={`font-extrabold ${data.pnl > 0 ? 'text-[#166534]' : 'text-[#991B1B]'}`}>
-                              {data.pnl > 0 ? '+' : ''}₹{data.pnl.toLocaleString('en-IN')}
+        {sortedClosed.length === 0 ? (
+          <div className="h-56 md:h-72 w-full flex flex-col items-center justify-center border border-[#D9D9D2] border-dashed rounded-xl bg-[#FAFAF7]/50 text-center p-6 space-y-2">
+            <div className="p-3 rounded-full bg-[#EAEAE2]/50 text-[#5C5C5E]">
+              <TrendingUp size={24} />
+            </div>
+            <h3 className="text-xs font-bold text-[#1C1C1E] uppercase tracking-wider">No closed trades logged yet</h3>
+            <p className="text-[11px] text-[#5C5C5E] font-medium max-w-xs leading-relaxed">
+              Your equity curve will compile here once you close and log your first trade setup.
+            </p>
+          </div>
+        ) : (
+          <div className="h-56 md:h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorEquity" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#166534" stopOpacity={0.15}/>
+                    <stop offset="95%" stopColor="#166534" stopOpacity={0.0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" vertical={false} />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#5C5C5E" 
+                  fontSize={11} 
+                  fontWeight={600}
+                  tickLine={false} 
+                  axisLine={false}
+                  dy={10}
+                  minTickGap={15}
+                />
+                <YAxis 
+                  stroke="#5C5C5E" 
+                  fontSize={11} 
+                  fontWeight={600}
+                  tickLine={false} 
+                  axisLine={false}
+                  domain={['dataMin - 10000', 'dataMax + 10000']}
+                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                  dx={-10}
+                />
+                <Tooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white border border-[#D9D9D2] p-4 rounded-xl shadow-lg max-w-xs space-y-2">
+                          <p className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider">
+                            {data.dateStr || 'Baseline'}
+                          </p>
+                          <div className="flex justify-between items-baseline gap-4">
+                            <span className="text-xs font-bold text-[#1C1C1E]">Equity:</span>
+                            <span className="text-sm font-extrabold text-[#1C1C1E] font-display">
+                              ₹{data.equity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                             </span>
                           </div>
-                        )}
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <ReferenceLine y={initialCapital} stroke="#5C5C5E" strokeDasharray="5 5" opacity={0.3} />
-              <Area 
-                type="monotone" 
-                dataKey="equity" 
-                stroke="#166534" 
-                strokeWidth={2}
-                fillOpacity={1} 
-                fill="url(#colorEquity)" 
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+                          {data.pnl !== 0 && (
+                            <div className="pt-1.5 border-t border-[#D9D9D2]/50 flex justify-between items-center text-xs">
+                              <span className="font-semibold text-[#5C5C5E]">{data.symbol} P&L:</span>
+                              <span className={`font-extrabold ${data.pnl > 0 ? 'text-[#166534]' : 'text-[#991B1B]'}`}>
+                                {data.pnl > 0 ? '+' : ''}₹{data.pnl.toLocaleString('en-IN')}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <ReferenceLine y={initialCapital} stroke="#5C5C5E" strokeDasharray="5 5" opacity={0.3} />
+                <Area 
+                  type="monotone" 
+                  dataKey="equity" 
+                  stroke="#166534" 
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#colorEquity)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
 
       {/* Row 3: 8-cell metric grid (MetricChip components) */}
