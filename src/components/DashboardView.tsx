@@ -1,21 +1,12 @@
 import React from 'react';
 import type { Trade } from '../types';
-import { calculateStats, generateCoachInsights } from '../utils/stats';
+import { calculateStats } from '../utils/stats';
 import {
-  CalendarCheck,
-  CalendarX,
   TrendingUp,
-  AlertTriangle,
-  ShieldAlert,
-  Activity,
-  Flame,
-  BrainCircuit,
-  Compass,
   ArrowUpRight,
   ArrowDownRight,
   Percent,
   Wallet,
-  Sparkles,
   Edit2
 } from 'lucide-react';
 import {
@@ -30,30 +21,6 @@ import {
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
 
-// Icon resolver helper for dynamic AI coach icons
-const getInsightIcon = (iconName: string, color: string) => {
-  const props = { size: 20, style: { color } };
-  switch (iconName) {
-    case 'CalendarCheck': return <CalendarCheck {...props} />;
-    case 'CalendarX': return <CalendarX {...props} />;
-    case 'TrendingUp': return <TrendingUp {...props} />;
-    case 'AlertTriangle': return <AlertTriangle {...props} />;
-    case 'ShieldAlert': return <ShieldAlert {...props} />;
-    case 'Activity': return <Activity {...props} />;
-    case 'Flame': return <Flame {...props} />;
-    case 'BrainCircuit': return <BrainCircuit {...props} />;
-    default: return <Compass {...props} />;
-  }
-};
-
-// InsightCard Tonal Style map
-const INSIGHT_TONES = {
-  positive: { rail: '#5C8A6E', bg: 'rgba(92, 138, 110, 0.1)', text: '#5C8A6E' },
-  negative: { rail: '#B56B6B', bg: 'rgba(181, 107, 107, 0.1)', text: '#B56B6B' },
-  neutral: { rail: '#6B6B6E', bg: 'rgba(107, 107, 110, 0.1)', text: '#6B6B6E' },
-  warning: { rail: '#C89B5C', bg: 'rgba(200, 155, 92, 0.1)', text: '#C89B5C' }
-};
-
 interface DashboardViewProps {
   trades: Trade[];
   startingCapital: number;
@@ -66,11 +33,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   trades,
   startingCapital,
   onEditCapital,
-  customInstructions,
   onSelectTradeImage
 }) => {
   const stats = calculateStats(trades, startingCapital);
-  const insights = generateCoachInsights(trades, customInstructions, startingCapital);
 
   const closedTrades = trades.filter(t => t.status === 'CLOSED');
 
@@ -381,65 +346,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-[10px] font-semibold text-[#5C5C5E]">Avg duration based on setups</span>
           </div>
         </div>
-      </div>
-
-      {/* Row 4: CoachPanel (AI Insights) */}
-      <div className="bg-white border border-[#D9D9D2] p-4 md:p-6 rounded-xl md:rounded-2xl premium-shadow space-y-4 md:space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-tr from-[#244230] to-[#5C8A6E] rounded-xl text-white">
-              <Sparkles size={20} className="animate-pulse" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold font-display text-[#1C1C1E]">
-                Journal.ai Coach
-              </h2>
-              <p className="text-xs font-medium text-[#5C5C5E]">
-                Local algorithmic execution diagnostic & mindset feedback
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Coach Insights Carousel/Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {insights.map((insight) => {
-            const toneStyle = INSIGHT_TONES[insight.tone] || INSIGHT_TONES.neutral;
-            return (
-              <div
-                key={insight.id}
-                className="relative bg-white border border-[#D9D9D2] rounded-xl md:rounded-2xl p-4 md:p-5 overflow-hidden flex flex-col justify-between premium-shadow-hover transition-all duration-200"
-                style={{ borderLeftWidth: '4px', borderLeftColor: toneStyle.rail }}
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-[#1C1C1E] uppercase tracking-tight block">
-                      {insight.title}
-                    </span>
-                    <div className="p-1.5 rounded-lg" style={{ backgroundColor: toneStyle.bg }}>
-                      {getInsightIcon(insight.iconName, toneStyle.text)}
-                    </div>
-                  </div>
-                  <p className="text-xs leading-relaxed text-[#5C5C5E] font-medium">
-                    {insight.description}
-                  </p>
-                </div>
-
-                {insight.metric && (
-                  <div className="mt-4 pt-3 border-t border-[#D9D9D2]/30 flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wider">
-                      Metric
-                    </span>
-                    <span className="text-xs font-extrabold font-display" style={{ color: toneStyle.text }}>
-                      {insight.metric}
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
       </div>
 
       {/* Row 5: Recent Trades */}

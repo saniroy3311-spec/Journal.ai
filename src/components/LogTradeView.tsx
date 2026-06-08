@@ -23,6 +23,8 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
   const [optionType, setOptionType] = useState<'CE' | 'PE' | 'NONE'>('NONE');
   const [strategiesList, setStrategiesList] = useState<string[]>(STRATEGIES);
   const [strategy, setStrategy] = useState<string>('');
+  const [isCustomStrategyModalOpen, setIsCustomStrategyModalOpen] = useState(false);
+  const [newStrategyInput, setNewStrategyInput] = useState('');
 
   // Tags & Multiple Executions (Scale-In / Scale-Out) State
   const [tags, setTags] = useState<string[]>([]);
@@ -158,34 +160,43 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleStrategyChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleStrategyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     if (val === 'ADD_CUSTOM') {
-      const custom = prompt('Enter your custom strategy setup name:');
-      if (custom && custom.trim()) {
-        const cleanCustom = custom.trim();
-        if (strategiesList.includes(cleanCustom)) {
-          setStrategy(cleanCustom);
-          return;
-        }
-        const updatedList = [...strategiesList, cleanCustom];
-        setStrategiesList(updatedList);
-        setStrategy(cleanCustom);
-        
-        try {
-          await fetch('/api/custom-strategies', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ strategies: updatedList })
-          });
-        } catch (err) {
-          console.error('Failed to save strategy list', err);
-        }
-      } else {
-        setStrategy(strategiesList[0]);
-      }
+      setIsCustomStrategyModalOpen(true);
+      setNewStrategyInput('');
     } else {
       setStrategy(val);
+    }
+  };
+
+  const handleAddCustomStrategy = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanCustom = newStrategyInput.trim();
+    if (!cleanCustom) {
+      alert('Please enter a valid strategy setup name.');
+      return;
+    }
+    
+    if (strategiesList.includes(cleanCustom)) {
+      setStrategy(cleanCustom);
+      setIsCustomStrategyModalOpen(false);
+      return;
+    }
+    
+    const updatedList = [...strategiesList, cleanCustom];
+    setStrategiesList(updatedList);
+    setStrategy(cleanCustom);
+    setIsCustomStrategyModalOpen(false);
+    
+    try {
+      await fetch('/api/custom-strategies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ strategies: updatedList })
+      });
+    } catch (err) {
+      console.error('Failed to save strategy list', err);
     }
   };
 
@@ -895,6 +906,54 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
         </div>
 
       </form>
+
+      {/* Custom Strategy Modal Dialog */}
+      {isCustomStrategyModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-[#D9D9D2] rounded-2xl premium-shadow max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-2 border-b border-[#D9D9D2]/50 pb-3">
+              <span className="p-1.5 rounded-lg bg-[#D4E8DC] text-[#244230]">
+                <Plus size={16} />
+              </span>
+              <h3 className="text-xs font-extrabold text-[#1C1C1E] uppercase tracking-wider">
+                Add Custom Strategy
+              </h3>
+            </div>
+            
+            <form onSubmit={handleAddCustomStrategy} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-extrabold text-[#5C5C5E] uppercase tracking-wider block">
+                  Strategy Setup Name
+                </label>
+                <input
+                  type="text"
+                  value={newStrategyInput}
+                  onChange={(e) => setNewStrategyInput(e.target.value)}
+                  placeholder="e.g. Breakout Retest, 5EMA Pullback"
+                  className="w-full px-4 py-2.5 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E]"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCustomStrategyModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-[#5C5C5E] hover:text-[#1C1C1E] bg-[#FAFAF7] border border-[#D9D9D2] hover:bg-[#EAEAE2] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#244230] hover:bg-[#1D3526] transition-colors cursor-pointer"
+                >
+                  Save Strategy
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
