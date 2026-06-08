@@ -261,8 +261,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wider">
               Profit Factor
             </span>
-            <span className="text-lg font-extrabold font-display text-[#1C1C1E]">
-              {stats.profitFactor === Infinity ? '—' : stats.profitFactor.toFixed(2)}
+            <span className={`text-lg font-extrabold font-display ${stats.profitFactor === Infinity ? 'text-[#166534]' : 'text-[#1C1C1E]'}`}>
+              {stats.profitFactor === Infinity ? 'Perfect' : stats.profitFactor.toFixed(2)}
             </span>
             <span className="text-[10px] font-semibold text-[#5C5C5E]">Gross Wins / Gross Losses</span>
           </div>
@@ -272,8 +272,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-[10px] font-bold text-[#5C5C5E] uppercase tracking-wider">
               Avg R:R Ratio
             </span>
-            <span className="text-lg font-extrabold font-display text-[#1C1C1E]">
-              {stats.rrRatio === Infinity ? '—' : `${stats.rrRatio.toFixed(2)}x`}
+            <span className={`text-lg font-extrabold font-display ${stats.rrRatio === Infinity ? 'text-[#166534]' : 'text-[#1C1C1E]'}`}>
+              {stats.rrRatio === Infinity ? 'Perfect' : `${stats.rrRatio.toFixed(2)}x`}
             </span>
             <span className="text-[10px] font-semibold text-[#5C5C5E]">Avg Win / Avg Loss</span>
           </div>
