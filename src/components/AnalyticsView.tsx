@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Trade } from '../types';
 import { EMOTIONS } from '../constants';
 import {
@@ -47,8 +47,67 @@ interface AnalyticsViewProps {
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTradeImage }) => {
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date(2026, 4, 1)); // Initialize to May 2026 to align with mock data
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<Date | null>(new Date(2026, 4, 20)); // Pre-select a day
+  const [activeSection, setActiveSection] = useState<string>('overview');
 
   const closedTrades = trades.filter(t => t.status === 'CLOSED');
+
+  const sections = [
+    { id: 'overview', label: 'Overview', icon: TrendingUp },
+    { id: 'strategy', label: 'Strategy Breakdowns', icon: Briefcase },
+    { id: 'calendar', label: 'Trading Calendar', icon: Calendar },
+    { id: 'psychology', label: 'Psychology & Emotions', icon: Brain },
+    { id: 'tags', label: 'Tag Analysis', icon: Tag }
+  ];
+
+  // Smooth scroll handler with offset for sticky headers
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(`section-${id}`);
+    if (element) {
+      const offset = window.innerWidth >= 768 ? 180 : 160;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      setActiveSection(id);
+    }
+  };
+
+  // IntersectionObserver for Scrollspy behavior
+  useEffect(() => {
+    if (closedTrades.length === 0) return;
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '-180px 0px -40% 0px',
+      threshold: 0.05
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id.replace('section-', '');
+          setActiveSection(id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    sections.forEach((sec) => {
+      const el = document.getElementById(`section-${sec.id}`);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      sections.forEach((sec) => {
+        const el = document.getElementById(`section-${sec.id}`);
+        if (el) observer.unobserve(el);
+      });
+    };
+  }, [closedTrades.length]);
 
   // ----------------------------------------------------
   // OVERVIEW DATA PREPARATION
@@ -191,11 +250,31 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
 
   const selectedDayTrades = selectedCalendarDay ? getDayTrades(selectedCalendarDay) : [];
 
+  if (closedTrades.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 text-center space-y-4">
+        <div className="border-b border-[#D9D9D2] pb-5 text-left">
+          <h2 className="text-xl font-bold font-display text-[#1C1C1E]">
+            Performance Analytics
+          </h2>
+          <p className="text-xs font-medium text-[#5C5C5E]">
+            Algorithmic insights, strategy validation, calendar heatmaps, and psychological correlation
+          </p>
+        </div>
+        <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl space-y-2">
+          <Info size={40} className="mx-auto text-[#D9D9D2]" />
+          <h3 className="text-sm font-bold text-[#1C1C1E]">No analytics available</h3>
+          <p className="text-xs text-[#5C5C5E] font-medium">Please close at least one trade to activate analytics dashboards.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6 pb-24 md:pb-12 space-y-12">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6 pb-24 md:pb-12 space-y-6">
       
       {/* Tab Header Title */}
-      <div className="border-b border-[#D9D9D2] pb-5">
+      <div className="border-b border-[#D9D9D2] pb-4">
         <h2 className="text-xl font-bold font-display text-[#1C1C1E]">
           Performance Analytics
         </h2>
@@ -204,12 +283,34 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
         </p>
       </div>
 
-      <div className="space-y-16">
+      {/* Sticky Sub-Navigation Tabs Bar */}
+      <div className="sticky top-[61px] md:top-[73px] bg-[#FAFAF7]/95 backdrop-blur-md border-b border-[#D9D9D2]/70 py-2.5 z-20 -mx-4 md:-mx-8 px-4 md:px-8 flex items-center overflow-x-auto scrollbar-none gap-2 shadow-sm/5">
+        {sections.map((sec) => {
+          const Icon = sec.icon;
+          const isActive = activeSection === sec.id;
+          return (
+            <button
+              key={sec.id}
+              onClick={() => scrollToSection(sec.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
+                isActive
+                  ? 'bg-[#244230] text-white shadow-sm scale-102'
+                  : 'text-[#5C5C5E] hover:text-[#1C1C1E] bg-white border border-[#D9D9D2]/40 hover:border-[#D9D9D2] hover:bg-[#FAFAF7]'
+              }`}
+            >
+              <Icon size={14} />
+              <span>{sec.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="space-y-16 pt-4">
         
         {/* ----------------------------------------------------
             OVERVIEW SECTION
             ---------------------------------------------------- */}
-        <section className="space-y-6">
+        <section id="section-overview" className="space-y-6 scroll-mt-24">
           <div className="border-b border-[#D9D9D2]/60 pb-3">
             <h3 className="text-base font-bold font-display text-[#1C1C1E] flex items-center gap-2">
               <TrendingUp size={18} className="text-[#244230]" />
@@ -218,181 +319,173 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
             <p className="text-[11px] text-[#5C5C5E] font-semibold">Net profit, win rate ratio, and position size distribution</p>
           </div>
           
-          {closedTrades.length === 0 ? (
-            <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl text-center space-y-2">
-              <Info size={40} className="mx-auto text-[#D9D9D2]" />
-              <h3 className="text-sm font-bold text-[#1C1C1E]">No analytics available</h3>
-              <p className="text-xs text-[#5C5C5E] font-medium">Please close at least one trade to activate overview analytics.</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Monthly Realized P&L */}
+            <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                  Monthly Realized P&L
+                </h3>
+                <p className="text-[11px] text-[#5C5C5E] font-semibold">Net profit or loss grouped by month</p>
+              </div>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" vertical={false} />
+                    <XAxis dataKey="month" stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
+                    <YAxis stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
+                    <Tooltip
+                      formatter={(val: any) => [
+                        `₹${(val || 0).toLocaleString('en-IN')}`,
+                        'Monthly P&L'
+                      ]}
+                      contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
+                    />
+                    <Bar dataKey="pnl">
+                      {monthlyChartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.pnl >= 0 ? '#5C8A6E' : '#B56B6B'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
-              {/* Monthly Realized P&L */}
-              <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4">
-                <div>
-                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                    Monthly Realized P&L
-                  </h3>
-                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Net profit or loss grouped by month</p>
-                </div>
-                <div className="h-64">
+
+            {/* Wins / Losses Ratio */}
+            <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow flex flex-col justify-between space-y-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                  Win / Loss Ratio
+                </h3>
+                <p className="text-[11px] text-[#5C5C5E] font-semibold">Proportion of profitable vs losing closed trades</p>
+              </div>
+              <div className="flex flex-col md:flex-row items-center justify-around gap-6">
+                {/* Pie chart */}
+                <div className="h-44 w-44">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" vertical={false} />
-                      <XAxis dataKey="month" stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
-                      <YAxis stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
+                    <PieChart>
+                      <Pie
+                        data={winLossPieData}
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {winLossPieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
                       <Tooltip
-                        formatter={(val: any) => [
-                          `₹${(val || 0).toLocaleString('en-IN')}`,
-                          'Monthly P&L'
-                        ]}
+                        formatter={(value) => [`${value} trades`, 'Count']}
                         contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
                       />
-                      <Bar dataKey="pnl">
-                        {monthlyChartData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={entry.pnl >= 0 ? '#5C8A6E' : '#B56B6B'}
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
-              </div>
-
-              {/* Wins / Losses Ratio */}
-              <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow flex flex-col justify-between space-y-4">
-                <div>
-                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                    Win / Loss Ratio
-                  </h3>
-                  <p className="text-[11px] text-[#5C5C5E] font-semibold">Proportion of profitable vs losing closed trades</p>
-                </div>
-                <div className="flex flex-col md:flex-row items-center justify-around gap-6">
-                  {/* Pie chart */}
-                  <div className="h-44 w-44">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={winLossPieData}
-                          innerRadius={50}
-                          outerRadius={70}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {winLossPieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value) => [`${value} trades`, 'Count']}
-                          contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {/* Legend list */}
-                  <div className="space-y-4 text-xs font-bold text-[#1C1C1E]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded-md bg-[#5C8A6E]" />
-                      <div>
-                        <span className="text-[#5C5C5E] block text-[10px] uppercase">WINS</span>
-                        <span>{winCount} Trades ({((winCount / closedTrades.length) * 100).toFixed(1)}%)</span>
-                      </div>
+                {/* Legend list */}
+                <div className="space-y-4 text-xs font-bold text-[#1C1C1E]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-md bg-[#5C8A6E]" />
+                    <div>
+                      <span className="text-[#5C5C5E] block text-[10px] uppercase">WINS</span>
+                      <span>{winCount} Trades ({((winCount / closedTrades.length) * 100).toFixed(1)}%)</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded-md bg-[#B56B6B]" />
-                      <div>
-                        <span className="text-[#5C5C5E] block text-[10px] uppercase">LOSSES</span>
-                        <span>{lossCount} Trades ({((lossCount / closedTrades.length) * 100).toFixed(1)}%)</span>
-                      </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-md bg-[#B56B6B]" />
+                    <div>
+                      <span className="text-[#5C5C5E] block text-[10px] uppercase">LOSSES</span>
+                      <span>{lossCount} Trades ({((lossCount / closedTrades.length) * 100).toFixed(1)}%)</span>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Position Size vs PNL Scatter Plot */}
-              <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4 lg:col-span-2">
-                <div>
-                  <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
-                    Trade Size vs Realized P&L
-                  </h3>
-                  <p className="text-[11px] text-[#5C5C5E] font-semibold">
-                    Scatter distribution of total position risk capital vs net trade outcome
-                  </p>
-                </div>
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart margin={{ top: 20, right: 20, bottom: 10, left: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" />
-                      <XAxis
-                        type="number"
-                        dataKey="size"
-                        name="Position Size"
-                        unit="₹"
-                        stroke="#5C5C5E"
-                        fontSize={11}
-                        fontWeight={600}
-                        tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                      />
-                      <YAxis
-                        type="number"
-                        dataKey="pnl"
-                        name="Net P&L"
-                        unit="₹"
-                        stroke="#5C5C5E"
-                        fontSize={11}
-                        fontWeight={600}
-                        tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
-                      />
-                      <Tooltip
-                        cursor={{ strokeDasharray: '3 3' }}
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="bg-white border border-[#D9D9D2] p-4 rounded-xl shadow-lg space-y-1 text-xs">
-                                <p className="font-extrabold text-[#1C1C1E]">{data.symbol}</p>
-                                <p className="font-semibold text-[#5C5C5E]">{data.strategy}</p>
-                                <div className="flex justify-between gap-4 pt-1.5 border-t border-[#D9D9D2]/50 font-bold">
-                                  <span>Position Size:</span>
-                                  <span>₹{data.size.toLocaleString('en-IN')}</span>
-                                </div>
-                                <div className={`flex justify-between gap-4 font-black ${
-                                  data.pnl >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
-                                }`}>
-                                  <span>Outcome P&L:</span>
-                                  <span>{data.pnl >= 0 ? '+' : ''}₹{data.pnl.toLocaleString('en-IN')}</span>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Scatter data={scatterData}>
-                        {scatterData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={entry.pnl >= 0 ? '#5C8A6E' : '#B56B6B'}
-                            className="cursor-pointer"
-                          />
-                        ))}
-                      </Scatter>
-                    </ScatterChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
             </div>
-          )}
+
+            {/* Position Size vs PNL Scatter Plot */}
+            <div className="bg-white border border-[#D9D9D2] p-6 rounded-2xl premium-shadow space-y-4 lg:col-span-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-[#1C1C1E] uppercase tracking-wide">
+                  Trade Size vs Realized P&L
+                </h3>
+                <p className="text-[11px] text-[#5C5C5E] font-semibold">
+                  Scatter distribution of total position risk capital vs net trade outcome
+                </p>
+              </div>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 10, left: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#EAEAE2" />
+                    <XAxis
+                      type="number"
+                      dataKey="size"
+                      name="Position Size"
+                      unit="₹"
+                      stroke="#5C5C5E"
+                      fontSize={11}
+                      fontWeight={600}
+                      tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                    />
+                    <YAxis
+                      type="number"
+                      dataKey="pnl"
+                      name="Net P&L"
+                      unit="₹"
+                      stroke="#5C5C5E"
+                      fontSize={11}
+                      fontWeight={600}
+                      tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      cursor={{ strokeDasharray: '3 3' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white border border-[#D9D9D2] p-4 rounded-xl shadow-lg space-y-1 text-xs">
+                              <p className="font-extrabold text-[#1C1C1E]">{data.symbol}</p>
+                              <p className="font-semibold text-[#5C5C5E]">{data.strategy}</p>
+                              <div className="flex justify-between gap-4 pt-1.5 border-t border-[#D9D9D2]/50 font-bold">
+                                <span>Position Size:</span>
+                                <span>₹{data.size.toLocaleString('en-IN')}</span>
+                              </div>
+                              <div className={`flex justify-between gap-4 font-black ${
+                                data.pnl >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
+                              }`}>
+                                <span>Outcome P&L:</span>
+                                <span>{data.pnl >= 0 ? '+' : ''}₹{data.pnl.toLocaleString('en-IN')}</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Scatter data={scatterData}>
+                      {scatterData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.pnl >= 0 ? '#5C8A6E' : '#B56B6B'}
+                          className="cursor-pointer"
+                        />
+                      ))}
+                    </Scatter>
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
         </section>
 
         {/* ----------------------------------------------------
             STRATEGY SECTION
             ---------------------------------------------------- */}
-        <section className="space-y-6">
+        <section id="section-strategy" className="space-y-6 scroll-mt-24">
           <div className="border-b border-[#D9D9D2]/60 pb-3">
             <h3 className="text-base font-bold font-display text-[#1C1C1E] flex items-center gap-2">
               <Briefcase size={18} className="text-[#244230]" />
@@ -401,11 +494,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
             <p className="text-[11px] text-[#5C5C5E] font-semibold">Win rates and cumulative profitability per strategy setup</p>
           </div>
           
-          {closedTrades.length === 0 ? (
-            <div className="bg-white border border-[#D9D9D2] border-dashed p-12 rounded-2xl text-center space-y-2">
-              <Info size={40} className="mx-auto text-[#D9D9D2]" />
-              <h3 className="text-sm font-bold text-[#1C1C1E]">No strategy data</h3>
-              <p className="text-xs text-[#5C5C5E] font-medium">Please close at least one trade to view strategy breakdowns.</p>
+          {strategyStats.length === 0 ? (
+            <div className="bg-white border border-[#D9D9D2] border-dashed p-8 text-center text-[#5C5C5E] text-xs rounded-2xl">
+              No strategy data logged on your closed trades yet.
             </div>
           ) : (
             <div className="space-y-6">
@@ -496,7 +587,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
         {/* ----------------------------------------------------
             CALENDAR SECTION
             ---------------------------------------------------- */}
-        <section className="space-y-6">
+        <section id="section-calendar" className="space-y-6 scroll-mt-24">
           <div className="border-b border-[#D9D9D2]/60 pb-3">
             <h3 className="text-base font-bold font-display text-[#1C1C1E] flex items-center gap-2">
               <Calendar size={18} className="text-[#244230]" />
@@ -653,7 +744,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
         {/* ----------------------------------------------------
             PSYCHOLOGY SECTION
             ---------------------------------------------------- */}
-        <section className="space-y-6">
+        <section id="section-psychology" className="space-y-6 scroll-mt-24">
           <div className="border-b border-[#D9D9D2]/60 pb-3">
             <h3 className="text-base font-bold font-display text-[#1C1C1E] flex items-center gap-2">
               <Brain size={18} className="text-[#244230]" />
@@ -754,7 +845,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
         {/* ----------------------------------------------------
             TAGS SECTION
             ---------------------------------------------------- */}
-        <section className="space-y-6">
+        <section id="section-tags" className="space-y-6 scroll-mt-24">
           <div className="border-b border-[#D9D9D2]/60 pb-3">
             <h3 className="text-base font-bold font-display text-[#1C1C1E] flex items-center gap-2">
               <Tag size={18} className="text-[#244230]" />
