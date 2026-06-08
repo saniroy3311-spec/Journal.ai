@@ -84,7 +84,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="bg-gradient-to-r from-[#244230]/5 via-transparent to-[#5C8A6E]/5 border border-[#D9D9D2]/40 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden shadow-inner-sm">
         <div className="space-y-1 relative z-10">
           <h2 className="text-xl md:text-2xl font-black font-display text-[#1C1C1E] tracking-tight">
-            {getGreeting()}, <span className="text-[#244230] font-black">@{username}</span>!
+            {getGreeting()}, <span className="text-[#244230] font-black">{username.charAt(0).toUpperCase() + username.slice(1)}</span>!
           </h2>
           <p className="text-xs text-[#5C5C5E] font-semibold">
             {trades.length === 0 

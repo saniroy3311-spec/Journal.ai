@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
                 Active User
               </span>
               <span className="text-xs font-bold text-[#1C1C1E] font-display">
-                @{username}
+                {username.charAt(0).toUpperCase() + username.slice(1)}
               </span>
             </div>
             <button

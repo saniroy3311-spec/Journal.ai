@@ -278,8 +278,8 @@ function App() {
               </h3>
               <p className="text-xs text-[#5C5C5E] font-semibold mt-0.5 truncate">
                 {welcomeType === 'REGISTER' 
-                  ? `Nice to meet you, @${username}! Let's build your trading edge.` 
-                  : `Glad to see you again, @${username}! Happy trading today.`}
+                  ? `Nice to meet you, ${username ? (username.charAt(0).toUpperCase() + username.slice(1)) : ''}! Let's build your trading edge.` 
+                  : `Glad to see you again, ${username ? (username.charAt(0).toUpperCase() + username.slice(1)) : ''}! Happy trading today.`}
               </p>
             </div>
             <button 
