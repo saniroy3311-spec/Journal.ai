@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Trade, Execution } from '../types';
-import { STRATEGIES, PRESET_TAGS, EMOTIONS, INDIAN_MARKETS, CRYPTO_MARKETS } from '../constants';
+import { STRATEGIES, PRESET_TAGS, EMOTIONS, STOCK_MARKETS, CRYPTO_MARKETS } from '../constants';
 import { Plus, Search, X, Check, Calculator, Eye, HelpCircle, Trash2, Tag, Zap, Smile, Frown, Angry, Meh } from 'lucide-react';
 
 const EMOTION_MAP: Record<string, { icon: React.ComponentType<any>; color: string }> = {
@@ -194,7 +194,7 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
   };
 
   // Filter symbols based on market type and search query
-  const marketSymbols = market === 'CRYPTO' ? CRYPTO_MARKETS : INDIAN_MARKETS;
+  const marketSymbols = market === 'CRYPTO' ? CRYPTO_MARKETS : STOCK_MARKETS;
   const filteredSymbols = marketSymbols.filter((s) =>
     s.toLowerCase().includes(searchQuery.toLowerCase())
   );
