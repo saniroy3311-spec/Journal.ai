@@ -33,11 +33,9 @@ export const Header: React.FC<HeaderProps> = ({
       <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-[#D9D9D2]/70 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         {/* Left Side: Logo */}
         <div className="flex items-center gap-3">
-          <img 
-            src="/logo.png" 
-            alt="Journal.ai Logo" 
-            className="w-9 h-9 rounded-lg object-cover border border-[#D9D9D2]/30 shadow-sm"
-          />
+          <div className="w-9 h-9 rounded-lg bg-[#244230] flex items-center justify-center text-white font-semibold text-lg font-display">
+            J
+          </div>
           <div>
             <h1 className="text-xl font-bold font-display text-[#1C1C1E] tracking-tight leading-none">
               Journal.ai
@@ -117,11 +115,9 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile Top Header */}
       <header className="flex md:hidden items-center justify-between px-5 py-4 border-b border-[#D9D9D2]/70 bg-white/80 backdrop-blur-md sticky top-0 z-40 safe-top">
         <div className="flex items-center gap-2">
-          <img 
-            src="/logo.png" 
-            alt="Journal.ai Logo" 
-            className="w-8 h-8 rounded-lg object-cover border border-[#D9D9D2]/30 shadow-sm"
-          />
+          <div className="w-8 h-8 rounded-lg bg-[#244230] flex items-center justify-center text-white font-semibold font-display">
+            J
+          </div>
           <h1 className="text-lg font-bold font-display text-[#1C1C1E] tracking-tight">
             Journal.ai
           </h1>
