@@ -229,8 +229,12 @@ function App() {
             {/* Spinning Inner Arc */}
             <div className="w-16 h-16 rounded-full border-4 border-t-[#166534] border-r-transparent border-b-[#166534]/40 border-l-transparent animate-spin" />
             {/* Static Core Icon placeholder */}
-            <div className="absolute w-8 h-8 rounded-full bg-gradient-to-tr from-[#244230] to-[#5C8A6E] flex items-center justify-center shadow-md">
-              <span className="text-white text-xs font-black">J</span>
+            <div className="absolute w-8 h-8 rounded-full overflow-hidden border border-[#D9D9D2]/30 shadow-md flex items-center justify-center bg-[#FAF6EE]">
+              <img 
+                src="/logo.png" 
+                alt="Journal.ai Logo" 
+                className="w-11 h-11 max-w-none -translate-y-0.5 object-cover"
+              />
             </div>
           </div>
           <div className="text-center space-y-1">
@@ -261,8 +265,12 @@ function App() {
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md border border-[#D9D9D2] px-6 py-4 rounded-2xl shadow-[0_20px_50px_rgba(36,66,48,0.12)] flex items-center gap-4 max-w-md w-[90%]"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#244230] flex items-center justify-center text-white font-black text-sm shadow-md">
-              J
+            <div className="w-9 h-9 rounded-xl overflow-hidden border border-[#D9D9D2]/30 shadow-sm flex items-center justify-center bg-[#FAF6EE]">
+              <img 
+                src="/logo.png" 
+                alt="Journal.ai Logo" 
+                className="w-12 h-12 max-w-none -translate-y-1 object-cover"
+              />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-extrabold text-[#1C1C1E] tracking-tight">
