@@ -1,14 +1,6 @@
 import type { Trade, EmotionOption } from './types';
 
-export const STRATEGIES = [
-  'ORB 15 min',
-  'VWAP Rejection',
-  'Trendline Breakout',
-  'Support/Resistance',
-  'Moving Average Crossover',
-  'Scalp',
-  'Naked Price Action'
-];
+export const STRATEGIES: string[] = [];
 
 export const EMOTIONS: EmotionOption[] = [
   { emoji: '😎', label: 'Confident' },

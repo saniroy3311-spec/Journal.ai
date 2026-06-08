@@ -22,7 +22,7 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
   const [strikePrice, setStrikePrice] = useState<string>('');
   const [optionType, setOptionType] = useState<'CE' | 'PE' | 'NONE'>('NONE');
   const [strategiesList, setStrategiesList] = useState<string[]>(STRATEGIES);
-  const [strategy, setStrategy] = useState<string>(STRATEGIES[0]);
+  const [strategy, setStrategy] = useState<string>('');
 
   // Tags & Multiple Executions (Scale-In / Scale-Out) State
   const [tags, setTags] = useState<string[]>([]);
@@ -236,6 +236,10 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
 
     if (!symbol.trim()) {
       alert('Please select or type a symbol.');
+      return;
+    }
+    if (!strategy) {
+      alert('Please select or add a strategy setup.');
       return;
     }
     if (numEntry <= 0 || numQty <= 0 || numExit <= 0) {
@@ -706,6 +710,7 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
               onChange={handleStrategyChange}
               className="w-full px-4 py-2.5 text-xs bg-[#FAFAF7] border border-[#D9D9D2] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#244230] font-bold text-[#1C1C1E] appearance-none"
             >
+              <option value="" disabled>-- Select or Add Strategy Setup --</option>
               {strategiesList.map((strat) => (
                 <option key={strat} value={strat}>
                   {strat}

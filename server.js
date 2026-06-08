@@ -532,15 +532,7 @@ app.get('/api/custom-strategies', authenticateToken, async (req, res) => {
     if (row) {
       res.json(JSON.parse(row.value));
     } else {
-      const defaultStrats = [
-        'ORB 15 min',
-        'VWAP Rejection',
-        'Trendline Breakout',
-        'Support/Resistance',
-        'Moving Average Crossover',
-        'Scalp',
-        'Naked Price Action'
-      ];
+      const defaultStrats = [];
       res.json(defaultStrats);
     }
   } catch (err) {
