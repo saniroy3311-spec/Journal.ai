@@ -30,3 +30,4 @@ database.sqlite-journal
 # Environment variables
 .env
 
+inspect_user.cjs
