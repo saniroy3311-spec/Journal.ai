@@ -44,6 +44,14 @@ interface AnalyticsViewProps {
   onSelectTradeImage: (url: string) => void;
 }
 
+const sections = [
+  { id: 'overview', label: 'Overview', icon: TrendingUp },
+  { id: 'strategy', label: 'Strategy Breakdowns', icon: Briefcase },
+  { id: 'calendar', label: 'Trading Calendar', icon: Calendar },
+  { id: 'psychology', label: 'Psychology & Emotions', icon: Brain },
+  { id: 'tags', label: 'Tag Analysis', icon: Tag }
+];
+
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTradeImage }) => {
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date(2026, 4, 1)); // Initialize to May 2026 to align with mock data
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<Date | null>(new Date(2026, 4, 20)); // Pre-select a day
@@ -54,20 +62,15 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
     if (trades.length > 0) {
       const sorted = [...trades].sort((a, b) => b.date.localeCompare(a.date));
       const latestDate = new Date(sorted[0].date);
-      setCalendarMonth(latestDate);
-      setSelectedCalendarDay(latestDate);
+      const timer = setTimeout(() => {
+        setCalendarMonth(latestDate);
+        setSelectedCalendarDay(latestDate);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [trades]);
 
   const closedTrades = trades.filter(t => t.status === 'CLOSED');
-
-  const sections = [
-    { id: 'overview', label: 'Overview', icon: TrendingUp },
-    { id: 'strategy', label: 'Strategy Breakdowns', icon: Briefcase },
-    { id: 'calendar', label: 'Trading Calendar', icon: Calendar },
-    { id: 'psychology', label: 'Psychology & Emotions', icon: Brain },
-    { id: 'tags', label: 'Tag Analysis', icon: Tag }
-  ];
 
   // Smooth scroll handler with offset for sticky headers
   const scrollToSection = (id: string) => {
@@ -330,6 +333,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                     <XAxis dataKey="month" stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
                     <YAxis stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
                     <Tooltip
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       formatter={(val: any) => [
                         `₹${(val || 0).toLocaleString('en-IN')}`,
                         'Monthly P&L'
@@ -509,6 +513,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                       <XAxis type="number" stroke="#5C5C5E" fontSize={11} fontWeight={600} />
                       <YAxis dataKey="name" type="category" stroke="#5C5C5E" fontSize={11} fontWeight={600} width={120} tickLine={false} />
                       <Tooltip
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         formatter={(val: any) => [`₹${(val || 0).toLocaleString('en-IN')}`, 'Net P&L']}
                         contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
                       />
@@ -771,6 +776,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                       <XAxis dataKey="emoji" stroke="#5C5C5E" fontSize={16} tickLine={false} />
                       <YAxis stroke="#5C5C5E" fontSize={11} fontWeight={600} tickLine={false} />
                       <Tooltip
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         formatter={(val: any) => [`₹${Math.round(val || 0).toLocaleString('en-IN')}`, 'Avg P&L']}
                         contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
                       />
@@ -876,6 +882,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, onSelectTr
                         <XAxis type="number" stroke="#5C5C5E" fontSize={11} fontWeight={600} />
                         <YAxis dataKey="name" type="category" stroke="#5C5C5E" fontSize={11} fontWeight={600} width={120} tickLine={false} />
                         <Tooltip
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           formatter={(val: any) => [`₹${(val || 0).toLocaleString('en-IN')}`, 'Net P&L']}
                           contentStyle={{ borderRadius: '12px', borderColor: '#D9D9D2' }}
                         />

@@ -36,7 +36,7 @@ const STRATEGY_HOLD_TIMES: Record<string, number> = {
   'Naked Price Action': 2.5
 };
 
-export function calculateStats(trades: Trade[], startingCapital: number = 1254300): CalculatedStats {
+export function calculateStats(trades: Trade[], startingCapital: number = 0): CalculatedStats {
   const closedTrades = trades.filter(t => t.status === 'CLOSED');
   const totalTrades = closedTrades.length;
 
@@ -137,7 +137,7 @@ export function calculateStats(trades: Trade[], startingCapital: number = 125430
   };
 }
 
-export function generateCoachInsights(trades: Trade[], customInstructions: string = '', startingCapital: number = 1254300): InsightCard[] {
+export function generateCoachInsights(trades: Trade[], customInstructions: string = '', startingCapital: number = 0): InsightCard[] {
   const closedTrades = trades.filter(t => t.status === 'CLOSED');
   const insights: InsightCard[] = [];
 
@@ -258,8 +258,8 @@ export function generateCoachInsights(trades: Trade[], customInstructions: strin
 
   // 3. Avg Win : Avg Loss (R:R card, tone based on value ≥1.5/≥1/<1)
   const rr = stats.rrRatio;
-  let rrTone: 'positive' | 'neutral' | 'warning' | 'negative' = 'neutral';
-  let rrDesc = '';
+  let rrTone: 'positive' | 'neutral' | 'warning' | 'negative';
+  let rrDesc: string;
 
   if (rr >= 1.5) {
     rrTone = 'positive';

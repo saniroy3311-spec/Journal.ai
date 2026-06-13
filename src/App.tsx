@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Trade, TabType } from './types';
+import type { Trade, TabType, Execution } from './types';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
 import { LogTradeView } from './components/LogTradeView';
@@ -14,11 +14,11 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>('DASHBOARD');
   const [trades, setTrades] = useState<Trade[]>([]);
   const [customInstructions, setCustomInstructions] = useState<string>('');
-  const [startingCapital, setStartingCapital] = useState<number>(1254300);
+  const [startingCapital, setStartingCapital] = useState<number>(0);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(!!localStorage.getItem('token'));
   const [isCapitalModalOpen, setIsCapitalModalOpen] = useState<boolean>(false);
-  const [tempCapital, setTempCapital] = useState<string>('1254300');
+  const [tempCapital, setTempCapital] = useState<string>('0');
 
   // Auth Session State
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
@@ -72,7 +72,6 @@ function App() {
   // Load trades, coach instructions, and starting capital from backend SQLite database
   useEffect(() => {
     if (!token) {
-      setIsLoading(false);
       return;
     }
     async function loadData() {
@@ -94,7 +93,7 @@ function App() {
           throw new Error('Failed to load data from server');
         }
         const tradesData = await tradesRes.json();
-        const parsedTrades = tradesData.map((t: any) => ({
+        const parsedTrades = tradesData.map((t: Omit<Trade, 'tags' | 'executions'> & { tags?: string | string[]; executions?: string | Execution[] }) => ({
           ...t,
           tags: t.tags ? (typeof t.tags === 'string' ? JSON.parse(t.tags) : t.tags) : [],
           executions: t.executions ? (typeof t.executions === 'string' ? JSON.parse(t.executions) : t.executions) : []

@@ -162,10 +162,10 @@ export const CSVImporter: React.FC<CSVImporterProps> = ({ token, onImportComplet
 
         setStatus('SUCCESS');
         onImportComplete();
-      } catch (err: any) {
+      } catch (err) {
         console.error(err);
         setStatus('ERROR');
-        setErrorMessage(err.message || 'Failed to parse CSV file.');
+        setErrorMessage(err instanceof Error ? err.message : 'Failed to parse CSV file.');
       }
     };
     reader.readAsText(file);

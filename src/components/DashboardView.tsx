@@ -45,7 +45,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const initialCapital = startingCapital;
   const sortedClosed = [...closedTrades].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
-  let runningEquity = initialCapital;
   const chartData = [
     {
       name: 'Start',
@@ -53,18 +52,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       pnl: 0,
       symbol: 'Baseline',
       dateStr: ''
-    },
-    ...sortedClosed.map(t => {
-      runningEquity += t.pnl;
-      return {
-        name: format(parseISO(t.date), 'dd MMM'),
-        equity: runningEquity,
-        pnl: t.pnl,
-        symbol: t.symbol,
-        dateStr: format(parseISO(t.date), 'dd MMM yyyy HH:mm')
-      };
-    })
+    }
   ];
+  let runningEquity = initialCapital;
+  for (const t of sortedClosed) {
+    runningEquity += t.pnl;
+    chartData.push({
+      name: format(parseISO(t.date), 'dd MMM'),
+      equity: runningEquity,
+      pnl: t.pnl,
+      symbol: t.symbol,
+      dateStr: format(parseISO(t.date), 'dd MMM yyyy HH:mm')
+    });
+  }
 
   const recentClosed = [...closedTrades]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())

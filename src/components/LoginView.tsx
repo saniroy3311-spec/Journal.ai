@@ -55,8 +55,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       }
 
       onLoginSuccess(data.token, data.user.username, isRegistering);
-    } catch (err: any) {
-      setError(err.message || 'Server connection failed.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Server connection failed.');
     } finally {
       setIsLoading(false);
     }

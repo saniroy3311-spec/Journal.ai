@@ -3,7 +3,7 @@ import type { Trade, Execution } from '../types';
 import { STRATEGIES, PRESET_TAGS, EMOTIONS, STOCK_MARKETS, CRYPTO_MARKETS } from '../constants';
 import { Plus, Search, X, Check, Calculator, Eye, HelpCircle, Trash2, Tag, Zap, Smile, Frown, Angry, Meh } from 'lucide-react';
 
-const EMOTION_MAP: Record<string, { icon: React.ComponentType<any>; color: string }> = {
+const EMOTION_MAP: Record<string, { icon: React.ComponentType<{ size?: number; className?: string }>; color: string }> = {
   '😎': { icon: Zap, color: '#D4AF37' },
   '😊': { icon: Smile, color: '#166534' },
   '😟': { icon: Frown, color: '#D97706' },
@@ -11,6 +11,8 @@ const EMOTION_MAP: Record<string, { icon: React.ComponentType<any>; color: strin
   '😴': { icon: Meh, color: '#6B7280' },
   '🤔': { icon: HelpCircle, color: '#2563EB' }
 };
+
+const generateUniqueId = () => Math.random().toString(36).substring(2, 11);
 
 interface LogTradeViewProps {
   onAddTrade: (trade: Trade) => void;
@@ -56,7 +58,7 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
     }
 
     const newExec: Execution = {
-      id: Math.random().toString(36).substring(2, 11),
+      id: generateUniqueId(),
       type: execType,
       price,
       quantity: qty,
@@ -120,7 +122,12 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
 
   // Fetch strategies from backend API
   useEffect(() => {
-    fetch('/api/custom-strategies')
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    fetch('/api/custom-strategies', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();
@@ -183,9 +190,13 @@ export const LogTradeView: React.FC<LogTradeViewProps> = ({ onAddTrade, setActiv
     setIsCustomStrategyModalOpen(false);
     
     try {
+      const token = localStorage.getItem('token');
       await fetch('/api/custom-strategies', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ strategies: updatedList })
       });
     } catch (err) {

@@ -182,7 +182,7 @@ async function seedUserTrades(userId) {
 async function seedUserConfig(userId) {
   await db.execute({
     sql: 'INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)',
-    args: [`${userId}_starting_capital`, '1254300']
+    args: [`${userId}_starting_capital`, '0']
   });
   await db.execute({
     sql: 'INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)',
@@ -590,7 +590,7 @@ app.get('/api/starting-capital', authenticateToken, async (req, res) => {
       args: [`${req.user.id}_starting_capital`]
     });
     const row = resRow.rows[0];
-    res.json({ value: row ? parseFloat(row.value) : 1254300 });
+    res.json({ value: row ? parseFloat(row.value) : 0 });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch starting capital' });
